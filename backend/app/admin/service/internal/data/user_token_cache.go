@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -14,11 +15,15 @@ import (
 )
 
 const (
-	// AccessTokenKeyFormat 访问令牌键格式 at:{ct}:{uid}
-	AccessTokenKeyFormat = "at:%d:%d"
-	// RefreshTokenKeyFormat 刷新令牌键格式 rt:{ct}:{uid}
+	// AccessTokenKeyFormat 访问令牌键格式 at:{ct}:{uid}:{jti}
+	AccessTokenKeyFormat = "at:%d:%d:%s"
+	// AccessTokenKeyPrefixFormat 访问令牌键前缀格式 at:{ct}:{uid}:
+	AccessTokenKeyPrefixFormat = "at:%d:%d:"
 
-	RefreshTokenKeyFormat = "rt:%d:%d"
+	// RefreshTokenKeyFormat 刷新令牌键格式 rt:{ct}:{uid}:{jti}
+	RefreshTokenKeyFormat = "rt:%d:%d:%s"
+	// RefreshTokenKeyPrefixFormat 刷新令牌键前缀格式 rt:{ct}:{uid}:
+	RefreshTokenKeyPrefixFormat = "rt:%d:%d:"
 
 	// BlacklistKeyFormat 访问令牌黑名单键格式 bl:{jti}
 	BlacklistKeyFormat = "bl:%s"
@@ -49,25 +54,15 @@ func (r *UserTokenCache) AddTokenPair(
 	accessTokenExpires time.Duration,
 	refreshTokenExpires time.Duration,
 ) error {
-	var err error
 	pipe := r.rdb.TxPipeline()
 
-	atKey := r.makeAccessTokenKey(clientType, userId)
-	pipe.HSet(ctx, atKey, jti, accessToken)
-	if accessTokenExpires > 0 {
-		// WARN: HExpire有版本要求，请确保使用的redis版本支持该命令。
-		pipe.HExpire(ctx, atKey, accessTokenExpires, jti)
-	}
+	atKey := r.makeAccessTokenKey(clientType, userId, jti)
+	pipe.Set(ctx, atKey, accessToken, accessTokenExpires)
 
-	rtKey := r.makeRefreshTokenKey(clientType, userId)
-	pipe.HSet(ctx, rtKey, jti, refreshToken)
-	if refreshTokenExpires > 0 {
-		// WARN: HExpire有版本要求，请确保使用的redis版本支持该命令。
-		pipe.HExpire(ctx, rtKey, refreshTokenExpires, jti)
-	}
+	rtKey := r.makeRefreshTokenKey(clientType, userId, jti)
+	pipe.Set(ctx, rtKey, refreshToken, refreshTokenExpires)
 
-	_, err = pipe.Exec(ctx)
-
+	_, err := pipe.Exec(ctx)
 	return err
 }
 
@@ -80,8 +75,8 @@ func (r *UserTokenCache) AddAccessToken(
 	accessToken string,
 	expires time.Duration,
 ) error {
-	key := r.makeAccessTokenKey(clientType, userId)
-	return r.hset(ctx, key, jti, accessToken, expires)
+	key := r.makeAccessTokenKey(clientType, userId, jti)
+	return r.set(ctx, key, accessToken, expires)
 }
 
 // AddRefreshToken 添加刷新令牌
@@ -93,8 +88,8 @@ func (r *UserTokenCache) AddRefreshToken(
 	refreshToken string,
 	expires time.Duration,
 ) error {
-	key := r.makeRefreshTokenKey(clientType, userId)
-	return r.hset(ctx, key, jti, refreshToken, expires)
+	key := r.makeRefreshTokenKey(clientType, userId, jti)
+	return r.set(ctx, key, refreshToken, expires)
 }
 
 // AddBlockedAccessToken 添加被阻止的访问令牌
@@ -105,14 +100,14 @@ func (r *UserTokenCache) AddBlockedAccessToken(ctx context.Context, jti string, 
 
 // GetAccessTokens 获取访问令牌
 func (r *UserTokenCache) GetAccessTokens(ctx context.Context, clientType authenticationV1.ClientType, userId uint32) []string {
-	key := r.makeAccessTokenKey(clientType, userId)
-	return r.hgetValues(ctx, key)
+	prefix := r.makeAccessTokenPrefix(clientType, userId)
+	return r.scanValues(ctx, prefix)
 }
 
 // GetRefreshTokens 获取刷新令牌
 func (r *UserTokenCache) GetRefreshTokens(ctx context.Context, clientType authenticationV1.ClientType, userId uint32) []string {
-	key := r.makeRefreshTokenKey(clientType, userId)
-	return r.hgetValues(ctx, key)
+	prefix := r.makeRefreshTokenPrefix(clientType, userId)
+	return r.scanValues(ctx, prefix)
 }
 
 // RevokeToken 移除所有令牌
@@ -149,8 +144,8 @@ func (r *UserTokenCache) RevokeAccessToken(
 	userId uint32,
 	jti string,
 ) error {
-	key := r.makeAccessTokenKey(clientType, userId)
-	return r.hdel(ctx, key, jti)
+	key := r.makeAccessTokenKey(clientType, userId, jti)
+	return r.del(ctx, key)
 }
 
 // RevokeRefreshToken 移除刷新令牌
@@ -160,8 +155,8 @@ func (r *UserTokenCache) RevokeRefreshToken(
 	userId uint32,
 	jti string,
 ) error {
-	key := r.makeRefreshTokenKey(clientType, userId)
-	return r.hdel(ctx, key, jti)
+	key := r.makeRefreshTokenKey(clientType, userId, jti)
+	return r.del(ctx, key)
 }
 
 // RevokeBlockedAccessToken 撤销被阻止的访问令牌
@@ -178,18 +173,17 @@ func (r *UserTokenCache) IsValidAccessToken(
 	jti string,
 	uploadedToken string,
 ) (bool, error) {
-	key := r.makeAccessTokenKey(clientType, userId)
+	key := r.makeAccessTokenKey(clientType, userId, jti)
 
-	storedToken, err := r.rdb.HGet(ctx, key, jti).Result()
+	storedToken, err := r.rdb.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
 		return false, nil // 令牌不存在或已过期
 	}
-
-	if storedToken != uploadedToken {
-		return false, nil
+	if err != nil {
+		return false, err
 	}
 
-	return true, nil
+	return storedToken == uploadedToken, nil
 }
 
 func (r *UserTokenCache) IsExistAccessTokenByJti(
@@ -198,68 +192,30 @@ func (r *UserTokenCache) IsExistAccessTokenByJti(
 	userId uint32,
 	jti string,
 ) (bool, error) {
-	key := r.makeAccessTokenKey(clientType, userId)
-
-	_, err := r.rdb.HGet(ctx, key, jti).Result()
-	if errors.Is(err, redis.Nil) {
-		return false, nil // 令牌不存在或已过期
-	}
-
-	return true, nil
+	key := r.makeAccessTokenKey(clientType, userId, jti)
+	return r.exists(ctx, key), nil
 }
 
-// IsExistAccessToken 访问令牌是否存在
+// IsExistAccessToken 访问令牌是否存在（按令牌值查找，返回 jti）
 func (r *UserTokenCache) IsExistAccessToken(
 	ctx context.Context,
 	clientType authenticationV1.ClientType,
 	userId uint32,
 	uploadedToken string,
 ) (exist bool, jti string, err error) {
-	key := r.makeAccessTokenKey(clientType, userId)
-
-	all, err := r.rdb.HGetAll(ctx, key).Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return false, "", nil
-		}
-		r.log.Errorf("hgetall key[%s] failed: %v", key, err)
-		return false, "", err
-	}
-
-	for k, v := range all {
-		if v == uploadedToken {
-			return true, k, nil
-		}
-	}
-
-	return false, "", nil
+	prefix := r.makeAccessTokenPrefix(clientType, userId)
+	return r.scanFindValue(ctx, prefix, uploadedToken)
 }
 
-// IsExistRefreshToken 刷新令牌是否存在
+// IsExistRefreshToken 刷新令牌是否存在（按令牌值查找，返回 jti）
 func (r *UserTokenCache) IsExistRefreshToken(
 	ctx context.Context,
 	clientType authenticationV1.ClientType,
 	userId uint32,
 	uploadedToken string,
 ) (exist bool, jti string, err error) {
-	key := r.makeRefreshTokenKey(clientType, userId)
-
-	all, err := r.rdb.HGetAll(ctx, key).Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return false, "", nil
-		}
-		r.log.Errorf("hgetall key[%s] failed: %v", key, err)
-		return false, "", err
-	}
-
-	for k, v := range all {
-		if v == uploadedToken {
-			return true, k, nil
-		}
-	}
-
-	return false, "", nil
+	prefix := r.makeRefreshTokenPrefix(clientType, userId)
+	return r.scanFindValue(ctx, prefix, uploadedToken)
 }
 
 // IsValidRefreshToken 刷新令牌是否有效
@@ -270,18 +226,17 @@ func (r *UserTokenCache) IsValidRefreshToken(
 	jti string,
 	uploadedToken string,
 ) (bool, error) {
-	key := r.makeRefreshTokenKey(clientType, userId)
+	key := r.makeRefreshTokenKey(clientType, userId, jti)
 
-	storedToken, err := r.rdb.HGet(ctx, key, jti).Result()
+	storedToken, err := r.rdb.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
 		return false, nil // 令牌不存在或已过期
 	}
-
-	if storedToken != uploadedToken {
-		return false, nil
+	if err != nil {
+		return false, err
 	}
 
-	return true, nil
+	return storedToken == uploadedToken, nil
 }
 
 // IsBlockedAccessToken 访问令牌是否被阻止
@@ -290,34 +245,44 @@ func (r *UserTokenCache) IsBlockedAccessToken(ctx context.Context, jti string) b
 	return r.exists(ctx, key)
 }
 
-// RevokeUserAllAccessToken 删除访问令牌
+// RevokeUserAllAccessToken 删除用户所有访问令牌
 func (r *UserTokenCache) RevokeUserAllAccessToken(
 	ctx context.Context,
 	clientType authenticationV1.ClientType,
 	userId uint32,
 ) error {
-	key := r.makeAccessTokenKey(clientType, userId)
-	return r.del(ctx, key)
+	prefix := r.makeAccessTokenPrefix(clientType, userId)
+	return r.delByPattern(ctx, prefix)
 }
 
-// RevokeUserAllRefreshToken 删除刷新令牌
+// RevokeUserAllRefreshToken 删除用户所有刷新令牌
 func (r *UserTokenCache) RevokeUserAllRefreshToken(
 	ctx context.Context,
 	clientType authenticationV1.ClientType,
 	userId uint32,
 ) error {
-	key := r.makeRefreshTokenKey(clientType, userId)
-	return r.del(ctx, key)
+	prefix := r.makeRefreshTokenPrefix(clientType, userId)
+	return r.delByPattern(ctx, prefix)
 }
 
-// makeAccessTokenKey 生成访问令牌键
-func (r *UserTokenCache) makeAccessTokenKey(clientType authenticationV1.ClientType, userId uint32) string {
-	return fmt.Sprintf(AccessTokenKeyFormat, clientType.Number(), userId)
+// makeAccessTokenKey 生成访问令牌键 at:{ct}:{uid}:{jti}
+func (r *UserTokenCache) makeAccessTokenKey(clientType authenticationV1.ClientType, userId uint32, jti string) string {
+	return fmt.Sprintf(AccessTokenKeyFormat, clientType.Number(), userId, jti)
 }
 
-// makeRefreshTokenKey 生成刷新令牌键
-func (r *UserTokenCache) makeRefreshTokenKey(clientType authenticationV1.ClientType, userId uint32) string {
-	return fmt.Sprintf(RefreshTokenKeyFormat, clientType.Number(), userId)
+// makeAccessTokenPrefix 生成访问令牌键前缀 at:{ct}:{uid}:
+func (r *UserTokenCache) makeAccessTokenPrefix(clientType authenticationV1.ClientType, userId uint32) string {
+	return fmt.Sprintf(AccessTokenKeyPrefixFormat, clientType.Number(), userId)
+}
+
+// makeRefreshTokenKey 生成刷新令牌键 rt:{ct}:{uid}:{jti}
+func (r *UserTokenCache) makeRefreshTokenKey(clientType authenticationV1.ClientType, userId uint32, jti string) string {
+	return fmt.Sprintf(RefreshTokenKeyFormat, clientType.Number(), userId, jti)
+}
+
+// makeRefreshTokenPrefix 生成刷新令牌键前缀 rt:{ct}:{uid}:
+func (r *UserTokenCache) makeRefreshTokenPrefix(clientType authenticationV1.ClientType, userId uint32) string {
+	return fmt.Sprintf(RefreshTokenKeyPrefixFormat, clientType.Number(), userId)
 }
 
 // makeBlacklistKey 生成黑名单键
@@ -325,9 +290,14 @@ func (r *UserTokenCache) makeBlacklistKey(jti string) string {
 	return fmt.Sprintf(BlacklistKeyFormat, jti)
 }
 
+// extractJtiFromKey 从键中提取 jti，如 "at:0:1:abc-def" → "abc-def"
+func (r *UserTokenCache) extractJtiFromKey(key, prefix string) string {
+	return strings.TrimPrefix(key, prefix)
+}
+
 func (r *UserTokenCache) set(ctx context.Context, key string, value string, expires time.Duration) error {
 	if err := r.rdb.Set(ctx, key, value, expires).Err(); err != nil {
-		r.log.Errorf("set key[%s] value[%s] failed: %v", key, value, err)
+		r.log.Errorf("set key[%s] failed: %v", key, err)
 		return err
 	}
 	return nil
@@ -364,59 +334,77 @@ func (r *UserTokenCache) exists(ctx context.Context, key string) bool {
 	return n > 0
 }
 
-// hset 设置字段
-func (r *UserTokenCache) hset(ctx context.Context, key string, field, value string, expires time.Duration) error {
-	var err error
-	if err = r.rdb.HSet(ctx, key, field, value).Err(); err != nil {
-		r.log.Errorf("hset key[%s] field[%s] failed: %v", key, field, err)
-		return err
-	}
-
-	if expires > 0 {
-		// WARN: HExpire有版本要求，请确保使用的redis版本支持该命令。
-		if err = r.rdb.HExpire(ctx, key, expires, field).Err(); err != nil {
-			r.log.Errorf("hexpire key[%s] field[%s] failed: %v", key, field, err)
-			return err
+// scanKeys 使用 SCAN 命令扫描匹配前缀的所有键
+func (r *UserTokenCache) scanKeys(ctx context.Context, prefix string) []string {
+	var keys []string
+	pattern := prefix + "*"
+	var cursor uint64
+	for {
+		var batch []string
+		var err error
+		batch, cursor, err = r.rdb.Scan(ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			r.log.Errorf("scan pattern[%s] failed: %v", pattern, err)
+			return keys
+		}
+		keys = append(keys, batch...)
+		if cursor == 0 {
+			break
 		}
 	}
-
-	return nil
+	return keys
 }
 
-// hgetValues 获取所有字段
-func (r *UserTokenCache) hgetValues(ctx context.Context, key string) []string {
-	n, err := r.rdb.HGetAll(ctx, key).Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return []string{}
-		}
-
-		r.log.Errorf("hgetValues key[%s] failed: %v", key, err)
+// scanValues 扫描前缀匹配的所有键并返回值
+func (r *UserTokenCache) scanValues(ctx context.Context, prefix string) []string {
+	keys := r.scanKeys(ctx, prefix)
+	if len(keys) == 0 {
 		return []string{}
 	}
 
-	var tokens []string
-	for _, v := range n {
-		tokens = append(tokens, v)
+	var values []string
+	for _, key := range keys {
+		val, err := r.rdb.Get(ctx, key).Result()
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				continue // 已过期，跳过
+			}
+			r.log.Errorf("get key[%s] failed: %v", key, err)
+			continue
+		}
+		values = append(values, val)
 	}
-
-	return tokens
+	return values
 }
 
-// hexists 判断字段是否存在
-func (r *UserTokenCache) hexists(ctx context.Context, key string, field string) bool {
-	n, err := r.rdb.HExists(ctx, key, field).Result()
-	if err != nil {
-		r.log.Errorf("hexists key[%s] field[%s] failed: %v", key, field, err)
-		return false
+// scanFindValue 扫描前缀匹配的所有键，查找值等于 targetValue 的条目，返回 (exist, jti, err)
+func (r *UserTokenCache) scanFindValue(ctx context.Context, prefix, targetValue string) (bool, string, error) {
+	keys := r.scanKeys(ctx, prefix)
+	for _, key := range keys {
+		val, err := r.rdb.Get(ctx, key).Result()
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				continue
+			}
+			r.log.Errorf("get key[%s] failed: %v", key, err)
+			return false, "", err
+		}
+		if val == targetValue {
+			jti := r.extractJtiFromKey(key, prefix)
+			return true, jti, nil
+		}
 	}
-	return n
+	return false, "", nil
 }
 
-// hdel 删除字段
-func (r *UserTokenCache) hdel(ctx context.Context, key string, field string) error {
-	if err := r.rdb.HDel(ctx, key, field).Err(); err != nil {
-		r.log.Errorf("hdel key[%s] field[%s] failed: %v", key, field, err)
+// delByPattern 按前缀批量删除所有匹配的键
+func (r *UserTokenCache) delByPattern(ctx context.Context, prefix string) error {
+	keys := r.scanKeys(ctx, prefix)
+	if len(keys) == 0 {
+		return nil
+	}
+	if err := r.rdb.Del(ctx, keys...).Err(); err != nil {
+		r.log.Errorf("del keys by prefix[%s] failed: %v", prefix, err)
 		return err
 	}
 	return nil
