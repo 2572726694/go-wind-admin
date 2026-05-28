@@ -5,6 +5,7 @@ import {
   PushpinOutlined,
   PushpinFilled,
 } from '@ant-design/icons';
+import { useI18n } from '@/core/i18n';
 
 interface ControlPanelProps {
   collapsed: boolean;
@@ -21,6 +22,8 @@ export const ControlPanel = ({
   onToggleExpandOnHover,
   onToggleCollapse,
 }: ControlPanelProps) => {
+  const { t } = useI18n('common');
+
   return (
     <div
       style={{
@@ -33,7 +36,7 @@ export const ControlPanel = ({
       }}
     >
       {/* 左侧：折叠/展开按钮（始终显示） */}
-      <Tooltip title={collapsed ? '展开菜单' : '折叠菜单'}>
+      <Tooltip title={collapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}>
         <Button
           type="text"
           icon={collapsed ? <ColumnHeightOutlined /> : <ColumnWidthOutlined />}
@@ -52,7 +55,7 @@ export const ControlPanel = ({
 
       {/* 右侧：固定/自动按钮（始终显示） */}
       <Tooltip
-        title={expandOnHover ? '切换为手动模式（固定菜单）' : '切换为自动模式（鼠标悬停展开）'}
+        title={expandOnHover ? t('sidebar.switchToManual') : t('sidebar.switchToAuto')}
       >
         <Button
           type="text"

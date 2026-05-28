@@ -25,7 +25,7 @@ const internal_message: RouteRecordRaw[] = [
           title: "routes.internalMessage.internalMessage",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/internal_message/message/index.vue"),
+        component: () => import("@/pages/app/internal_message/message/index.vue"),
       },
 
       {
@@ -37,7 +37,7 @@ const internal_message: RouteRecordRaw[] = [
           title: "routes.internalMessage.internalMessageCategory",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/internal_message/category/index.vue"),
+        component: () => import("@/pages/app/internal_message/category/index.vue"),
       },
     ],
   },

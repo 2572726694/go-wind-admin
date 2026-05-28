@@ -16,7 +16,7 @@ const userRoutes: RouteRecordRaw[] = [
       {
         path: "user",
         name: "ProfilePage",
-        component: () => import("@/views/core/profile/index.vue"),
+        component: () => import("@/pages/core/profile/index.vue"),
         meta: {
           title: "routes.profile.settings",
           icon: "lucide:user-pen",

@@ -78,7 +78,7 @@ src/core/access/
         title: "routes.permission.permission",
         authority: ["sys:platform_admin"], // 仅平台管理员可访问
       },
-      component: () => import("@/views/app/permission/permission/index.vue"),
+      component: () => import("@/pages/app/permission/permission/index.vue"),
     },
   ],
 }

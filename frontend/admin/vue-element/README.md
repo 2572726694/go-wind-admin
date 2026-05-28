@@ -199,7 +199,7 @@ VITE_APP_TENANT_ENABLED=true
 │   ├── styles/          # 全局样式
 │   ├── types/           # TypeScript 类型定义
 │   ├── utils/           # 工具函数
-│   └── views/           # 页面视图
+│   └── pages/           # 页面视图
 │       ├── app/         # 应用模块（日志、消息、权限等）
 │       └── core/        # 核心功能（登录、个人中心等）
 ├── mock/                # Mock 数据

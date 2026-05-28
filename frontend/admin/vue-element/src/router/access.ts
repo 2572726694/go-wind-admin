@@ -5,11 +5,11 @@ import { generateAccessible } from "@/core/router";
 import { preferences } from "@/core/preferences";
 import { fetchNavigation } from "@/api/composables";
 
-import { i18n } from "@/i18n/setup";
+import { i18n } from '@/core/i18n';
 
 const t = i18n.global.t;
 
-const forbiddenComponent = () => import("@/views/core/error/403.vue");
+const forbiddenComponent = () => import("@/pages/core/error/403.vue");
 
 /**
  * 后端返回的路由数据结构兼容 RouteRecordStringComponent
@@ -21,7 +21,7 @@ function asRouteRecords(data: Record<string, any>): RouteRecordStringComponent[]
 }
 
 async function generateAccess(options: GenerateMenuAndRoutesOptions) {
-  const pageMap: ComponentRecordType = import.meta.glob("../views/**/*.vue");
+  const pageMap: ComponentRecordType = import.meta.glob("../pages/**/*.vue");
 
   const layoutMap: ComponentRecordType = {
     BasicLayout,

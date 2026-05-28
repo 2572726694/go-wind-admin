@@ -12,8 +12,14 @@
       <div :class="{ 'has-logo': showLogo }" class="layout-sidebar">
         <LayoutLogo :collapse="!isSidebarActuallyOpen" />
         <el-scrollbar>
-          <LayoutSidebar :data="routes" base-path="" />
+          <LayoutSidebar :data="routes" base-path="" :collapse="!isSidebarActuallyOpen" />
         </el-scrollbar>
+        <SidebarControlPanel
+          :collapsed="!isSidebarOpen"
+          :expand-on-hover="expandOnHover"
+          @toggle-collapse="toggleCollapse"
+          @toggle-expand-on-hover="toggleExpandOnHover"
+        />
       </div>
     </div>
 
@@ -42,8 +48,10 @@ import LayoutNavbar from "./components/LayoutNavbar.vue";
 import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebar from "./components/LayoutSidebar.vue";
+import SidebarControlPanel from "./components/SidebarControlPanel.vue";
+import { preferencesManager } from "@/core/preferences";
 
-const { showTagsView, showLogo, isSidebarOpen, routes } = useLayout();
+const { showTagsView, showLogo, isSidebarOpen, toggleSidebar, routes } = useLayout();
 
 const SIDEBAR_COLLAPSED_WIDTH = 54;
 
@@ -70,10 +78,14 @@ const isHoverExpanded = ref(false);
 // 侧边栏展开/折叠计算
 // =====================
 
-// 实际是否展开（考虑 hover 展开）
+// 实际是否展开
+// 自动模式 (expandOnHover): 视觉状态仅由 hover 控制，忽略 collapsed 偏好
+// 手动模式 (固定): 视觉状态由 collapsed 偏好控制
 const isSidebarActuallyOpen = computed(() => {
-  if (isSidebarOpen.value) return true;
-  return isHoverExpanded.value;
+  if (expandOnHover.value) {
+    return isHoverExpanded.value;
+  }
+  return isSidebarOpen.value;
 });
 
 // 侧边栏展开宽度（响应 preferences）
@@ -99,11 +111,20 @@ const sidebarClass = computed(() => ({
 
 const sidebarStyle = computed(() => ({
   width: `${sidebarActualWidth.value}px`,
+  // 自动模式展开时添加阴影，区分覆盖层与内容区
+  ...(expandOnHover.value && isHoverExpanded.value
+    ? { boxShadow: "6px 0 16px rgba(0, 0, 0, 0.08)" }
+    : {}),
 }));
 
 // 主内容区左边距
 const mainStyle = computed(() => {
   if (!sidebarVisible.value || sidebarHidden.value) return { left: "0px" };
+  // 自动模式：主内容区固定在折叠宽度位置，侧边栏展开时覆盖在上方
+  if (expandOnHover.value) {
+    return { left: `${SIDEBAR_COLLAPSED_WIDTH}px` };
+  }
+  // 固定模式：主内容区跟随侧边栏宽度
   return { left: `${sidebarActualWidth.value}px` };
 });
 
@@ -112,13 +133,44 @@ const mainStyle = computed(() => {
 // =====================
 
 function onSidebarMouseEnter() {
-  if (expandOnHover.value && !isSidebarOpen.value) {
+  if (expandOnHover.value) {
     isHoverExpanded.value = true;
   }
 }
 
 function onSidebarMouseLeave() {
   if (isHoverExpanded.value) {
+    isHoverExpanded.value = false;
+  }
+}
+
+// =====================
+// 控制面板操作
+// =====================
+
+/** 折叠/展开侧边栏（修改偏好） */
+function toggleCollapse() {
+  toggleSidebar();
+}
+
+/** 切换鼠标悬停自动展开模式 */
+function toggleExpandOnHover() {
+  const newExpandOnHover = !expandOnHover.value;
+
+  if (newExpandOnHover) {
+    // 切换到自动模式：保持当前视觉状态作为 hover 状态
+    isHoverExpanded.value = isSidebarActuallyOpen.value;
+    preferencesManager.updatePreferences({
+      sidebar: { expandOnHover: true },
+    });
+  } else {
+    // 切换到固定模式：将当前视觉状态同步到 collapsed 偏好，然后清除 hover
+    preferencesManager.updatePreferences({
+      sidebar: {
+        expandOnHover: false,
+        collapsed: !isSidebarActuallyOpen.value,
+      },
+    });
     isHoverExpanded.value = false;
   }
 }
@@ -138,13 +190,20 @@ function onSidebarMouseLeave() {
 
     .layout-sidebar {
       position: relative;
+      display: flex;
+      flex-direction: column;
       height: 100%;
       background-color: var(--menu-background);
       transition: width 0.28s;
 
+      .el-scrollbar {
+        flex: 1;
+        min-height: 0;
+      }
+
       &.has-logo {
         .el-scrollbar {
-          height: calc(100vh - $navbar-height);
+          // 由 flex 布局自动计算高度，不再需要 calc
         }
       }
 

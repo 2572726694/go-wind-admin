@@ -24,7 +24,7 @@ const permission: RouteRecordRaw[] = [
           title: "routes.permission.code",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/permission/permission/index.vue"),
+        component: () => import("@/pages/app/permission/permission/index.vue"),
       },
 
       {
@@ -36,7 +36,7 @@ const permission: RouteRecordRaw[] = [
           title: "routes.permission.menu",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/permission/menu/index.vue"),
+        component: () => import("@/pages/app/permission/menu/index.vue"),
       },
 
       {
@@ -48,7 +48,7 @@ const permission: RouteRecordRaw[] = [
           title: "routes.permission.api",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/permission/api/index.vue"),
+        component: () => import("@/pages/app/permission/api/index.vue"),
       },
 
       {
@@ -60,7 +60,7 @@ const permission: RouteRecordRaw[] = [
           title: "routes.permission.role",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/permission/role/index.vue"),
+        component: () => import("@/pages/app/permission/role/index.vue"),
       },
     ],
   },

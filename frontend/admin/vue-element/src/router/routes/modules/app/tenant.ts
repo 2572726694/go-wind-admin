@@ -23,7 +23,7 @@ const tenant: RouteRecordRaw[] = [
           title: "routes.tenant.member",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/tenant/tenant/index.vue"),
+        component: () => import("@/pages/app/tenant/tenant/index.vue"),
       },
     ],
   },

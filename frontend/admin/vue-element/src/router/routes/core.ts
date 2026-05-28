@@ -2,12 +2,12 @@ import type { RouteRecordRaw } from "vue-router";
 
 import { DEFAULT_HOME_PATH, LOGIN_PATH } from "@/constants";
 
-import Login from "@/views/core/login/index.vue";
+import Login from "@/pages/core/login/index.vue";
 import { Layout } from "@/layouts";
 
 /** 全局404页面 */
 const fallbackNotFoundRoute: RouteRecordRaw = {
-  component: () => import("@/views/core/error/404.vue"),
+  component: () => import("@/pages/core/error/404.vue"),
   meta: {
     hideInBreadcrumb: true,
     hideInMenu: true,

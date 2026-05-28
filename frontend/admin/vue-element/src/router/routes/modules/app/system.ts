@@ -24,7 +24,7 @@ const system: RouteRecordRaw[] = [
           title: "routes.system.dict",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/system/dict/index.vue"),
+        component: () => import("@/pages/app/system/dict/index.vue"),
       },
 
       {
@@ -36,7 +36,7 @@ const system: RouteRecordRaw[] = [
           title: "routes.system.file",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/system/file/index.vue"),
+        component: () => import("@/pages/app/system/file/index.vue"),
       },
 
       {
@@ -48,7 +48,7 @@ const system: RouteRecordRaw[] = [
           title: "routes.system.task",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/system/task/index.vue"),
+        component: () => import("@/pages/app/system/task/index.vue"),
       },
 
       {
@@ -60,7 +60,7 @@ const system: RouteRecordRaw[] = [
           title: "routes.system.loginPolicy",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/system/login_policy/index.vue"),
+        component: () => import("@/pages/app/system/login_policy/index.vue"),
       },
 
       {
@@ -72,7 +72,7 @@ const system: RouteRecordRaw[] = [
           title: "routes.system.language",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/system/language/index.vue"),
+        component: () => import("@/pages/app/system/language/index.vue"),
       },
     ],
   },

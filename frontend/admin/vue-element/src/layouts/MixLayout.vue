@@ -40,13 +40,15 @@
       <!-- 左侧菜单栏 -->
       <div
         class="layout__sidebar--left"
-        :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
-        :style="{ width: sidebarActualWidth + 'px' }"
+        :class="sidebarClass"
+        :style="sidebarStyle"
+        @mouseenter="onSidebarMouseEnter"
+        @mouseleave="onSidebarMouseLeave"
       >
         <el-scrollbar>
           <el-menu
             :default-active="activeSideMenuPath"
-            :collapse="!isSidebarOpen"
+            :collapse="!isSidebarActuallyOpen"
             :collapse-transition="false"
             :unique-opened="accordion"
             :background-color="variables['menu-background']"
@@ -61,13 +63,16 @@
             />
           </el-menu>
         </el-scrollbar>
-        <div class="layout__sidebar-toggle">
-          <LayoutHamburger :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
-        </div>
+        <SidebarControlPanel
+          :collapsed="!isSidebarOpen"
+          :expand-on-hover="expandOnHover"
+          @toggle-collapse="toggleSidebar"
+          @toggle-expand-on-hover="toggleExpandOnHover"
+        />
       </div>
 
       <!-- 主内容区 -->
-      <div :class="{ hasTagsView: showTagsView }" class="layout__main">
+      <div :class="{ hasTagsView: showTagsView }" class="layout__main" :style="mainStyle">
         <LayoutTagsView v-if="showTagsView" />
         <LayoutMain />
       </div>
@@ -83,7 +88,7 @@ import { ElIcon } from "element-plus";
 import { useLayout } from "./useLayout";
 import { useAccessStore } from "@/stores";
 import { isExternal } from "@/utils";
-import { translateRouteTitle } from "@/i18n";
+import { translateRouteTitle } from '@/core/i18n';
 import { preferences, preferencesManager, usePreferences } from "@/core/preferences";
 
 import BaseLayout from "./BaseLayout.vue";
@@ -92,7 +97,7 @@ import LayoutToolbar from "./components/LayoutToolbar.vue";
 import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebarItem from "./components/LayoutSidebarItem.vue";
-import LayoutHamburger from "./components/LayoutHamburger.vue";
+import SidebarControlPanel from "./components/SidebarControlPanel.vue";
 import variables from "@/styles/variables.module.scss";
 
 // 菜单图标渲染组件
@@ -124,21 +129,72 @@ const { width } = useWindowSize();
 
 const accessStore = useAccessStore();
 
-const { showTagsView, showLogo, isSidebarOpen, toggleSidebar, routes, sideMenuRoutes, activeTopMenuPath } =
-  useLayout();
+const {
+  showTagsView,
+  showLogo,
+  isSidebarOpen,
+  toggleSidebar,
+  routes,
+  sideMenuRoutes,
+  activeTopMenuPath,
+} = useLayout();
 
 const { navigationPreferences } = usePreferences();
 
 const SIDEBAR_COLLAPSED_WIDTH = 54;
+
+// 侧边栏 hover 展开
+const expandOnHover = computed(() => preferences.sidebar.expandOnHover);
+const isHoverExpanded = ref(false);
+
+// 自动模式: 视觉状态仅由 hover 控制
+// 手动模式: 视觉状态由 collapsed 偏好控制
+const isSidebarActuallyOpen = computed(() => {
+  if (expandOnHover.value) {
+    return isHoverExpanded.value;
+  }
+  return isSidebarOpen.value;
+});
+
 const sidebarActualWidth = computed(() =>
-  isSidebarOpen.value ? preferences.sidebar.width : SIDEBAR_COLLAPSED_WIDTH,
+  isSidebarActuallyOpen.value ? preferences.sidebar.width : SIDEBAR_COLLAPSED_WIDTH
 );
+
+// 侧边栏 CSS class
+const sidebarClass = computed(() => ({
+  "layout__sidebar--collapsed": !isSidebarActuallyOpen.value,
+  "layout__sidebar--auto": expandOnHover.value,
+}));
+
+// 侧边栏内联样式
+const sidebarStyle = computed(() => ({
+  width: `${sidebarActualWidth.value}px`,
+  // 自动模式：绝对定位覆盖在内容上方
+  ...(expandOnHover.value
+    ? {
+        position: "absolute" as const,
+        zIndex: 1000,
+        // 展开时添加阴影
+        ...(isHoverExpanded.value ? { boxShadow: "6px 0 16px rgba(0, 0, 0, 0.08)" } : {}),
+      }
+    : {}),
+}));
+
+// 主内容区样式
+const mainStyle = computed(() => {
+  // 自动模式：主内容区固定在折叠宽度
+  if (expandOnHover.value) {
+    return { marginLeft: `${SIDEBAR_COLLAPSED_WIDTH}px` };
+  }
+  // 固定模式：跟随侧边栏宽度
+  return { marginLeft: `${sidebarActualWidth.value}px` };
+});
 const accordion = computed(() => navigationPreferences.value.accordion);
 const isSplit = computed(() => navigationPreferences.value.split);
 
 // 侧边栏菜单数据：split 模式下显示二级菜单，否则显示完整菜单
 const effectiveSideMenuRoutes = computed(() =>
-  isSplit.value ? sideMenuRoutes.value : routes.value,
+  isSplit.value ? sideMenuRoutes.value : routes.value
 );
 
 const isLogoCollapsed = computed(() => width.value < 768);
@@ -226,6 +282,44 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
 
 // 监听路由变化，同步顶部菜单状态
 // activeTopMenuPath 和 sideMenuRoutes 会自动根据路由计算，无需手动同步
+
+// =====================
+// 侧边栏 hover 展开/收起
+// =====================
+
+function onSidebarMouseEnter() {
+  if (expandOnHover.value) {
+    isHoverExpanded.value = true;
+  }
+}
+
+function onSidebarMouseLeave() {
+  if (isHoverExpanded.value) {
+    isHoverExpanded.value = false;
+  }
+}
+
+/** 切换鼠标悬停自动展开模式 */
+function toggleExpandOnHover() {
+  const newExpandOnHover = !expandOnHover.value;
+
+  if (newExpandOnHover) {
+    // 切换到自动模式：保持当前视觉状态作为 hover 状态
+    isHoverExpanded.value = isSidebarActuallyOpen.value;
+    preferencesManager.updatePreferences({
+      sidebar: { expandOnHover: true },
+    });
+  } else {
+    // 切换到固定模式：将当前视觉状态同步到 collapsed 偏好，然后清除 hover
+    preferencesManager.updatePreferences({
+      sidebar: {
+        expandOnHover: false,
+        collapsed: !isSidebarActuallyOpen.value,
+      },
+    });
+    isHoverExpanded.value = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -302,6 +396,8 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
 
     .layout__sidebar--left {
       position: relative;
+      display: flex;
+      flex-direction: column;
       // 宽度由内联 style 控制
       height: 100%;
       background-color: var(--menu-background);
@@ -311,26 +407,19 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
         // 折叠宽度由内联 style 控制
       }
 
-      :deep(.el-scrollbar) {
-        height: calc(100vh - $navbar-height - 50px);
+      // 自动模式覆盖层
+      &.layout__sidebar--auto {
+        // position/z-index 由内联 style 控制
+      }
+
+      .el-scrollbar {
+        flex: 1;
+        min-height: 0;
       }
 
       :deep(.el-menu) {
         height: 100%;
         border: none;
-      }
-
-      .layout__sidebar-toggle {
-        position: absolute;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 50px;
-        line-height: 50px;
-        background-color: var(--menu-background);
-        box-shadow: 0 0 6px -2px var(--el-color-primary);
       }
     }
 

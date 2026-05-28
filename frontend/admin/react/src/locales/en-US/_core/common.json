@@ -65,6 +65,12 @@
       "componentStack": "Component Stack:"
     }
   },
+  "sidebar": {
+    "expandMenu": "Expand Menu",
+    "collapseMenu": "Collapse Menu",
+    "switchToManual": "Switch to Manual Mode (Fixed Sidebar)",
+    "switchToAuto": "Switch to Auto Mode (Expand on Hover)"
+  },
   "skeleton": {
     "loading": "Loading"
   },

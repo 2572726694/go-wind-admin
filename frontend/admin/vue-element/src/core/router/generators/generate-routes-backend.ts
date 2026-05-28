@@ -69,6 +69,6 @@ function normalizeViewPath(path: string): string {
   const viewPath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
 
   // 这里耦合了admin的目录结构
-  return viewPath.replace(/^\/views/, "");
+  return viewPath.replace(/^\/pages/, "");
 }
 export { generateRoutesByBackend };

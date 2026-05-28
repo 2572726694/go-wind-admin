@@ -22,7 +22,7 @@ import { type RouteLocationNormalized } from "vue-router";
 import { useTagsViewStore } from "@/stores";
 import { preferences, usePreferences } from "@/core/preferences";
 import variables from "@/styles/variables.module.scss";
-import Error404 from "@/views/core/error/404.vue";
+import Error404 from "@/pages/core/error/404.vue";
 
 const { cachedViews } = toRefs(useTagsViewStore());
 const { tabbarPreferences } = usePreferences();

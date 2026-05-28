@@ -23,7 +23,7 @@ const log: RouteRecordRaw[] = [
           title: "routes.log.loginAuditLog",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/log/login_audit_log/index.vue"),
+        component: () => import("@/pages/app/log/login_audit_log/index.vue"),
       },
 
       {
@@ -34,7 +34,7 @@ const log: RouteRecordRaw[] = [
           title: "routes.log.apiAuditLog",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/log/api_audit_log/index.vue"),
+        component: () => import("@/pages/app/log/api_audit_log/index.vue"),
       },
 
       {
@@ -45,7 +45,7 @@ const log: RouteRecordRaw[] = [
           title: "routes.log.operationAuditLog",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/log/operation_audit_log/index.vue"),
+        component: () => import("@/pages/app/log/operation_audit_log/index.vue"),
       },
 
       {
@@ -56,7 +56,7 @@ const log: RouteRecordRaw[] = [
           title: "routes.log.dataAccessAuditLog",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/log/data_access_audit_log/index.vue"),
+        component: () => import("@/pages/app/log/data_access_audit_log/index.vue"),
       },
 
       {
@@ -67,7 +67,7 @@ const log: RouteRecordRaw[] = [
           title: "routes.log.permissionAuditLog",
           authority: ["sys:platform_admin"],
         },
-        component: () => import("@/views/app/log/permission_audit_log/index.vue"),
+        component: () => import("@/pages/app/log/permission_audit_log/index.vue"),
       },
     ],
   },

@@ -24,7 +24,7 @@ const opm: RouteRecordRaw[] = [
           title: "routes.opm.orgUnit",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/opm/org_unit/index.vue"),
+        component: () => import("@/pages/app/opm/org_unit/index.vue"),
       },
 
       {
@@ -36,7 +36,7 @@ const opm: RouteRecordRaw[] = [
           title: "routes.opm.position",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/opm/position/index.vue"),
+        component: () => import("@/pages/app/opm/position/index.vue"),
       },
 
       {
@@ -48,7 +48,7 @@ const opm: RouteRecordRaw[] = [
           title: "routes.opm.user",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/opm/user/index.vue"),
+        component: () => import("@/pages/app/opm/user/index.vue"),
       },
       {
         path: "users/detail/:id",
@@ -58,7 +58,7 @@ const opm: RouteRecordRaw[] = [
           title: "routes.opm.userDetail",
           authority: ["sys:platform_admin", "sys:tenant_manager"],
         },
-        component: () => import("@/views/app/opm/user/detail/index.vue"),
+        component: () => import("@/pages/app/opm/user/detail/index.vue"),
       },
     ],
   },

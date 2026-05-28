@@ -98,7 +98,7 @@ declare module 'vue' {
     LayoutSidebarItem: typeof import('./../layouts/components/LayoutSidebarItem.vue')['default']
     LayoutTagsView: typeof import('./../layouts/components/LayoutTagsView.vue')['default']
     LayoutToolbar: typeof import('./../layouts/components/LayoutToolbar.vue')['default']
-    Login: typeof import('./../views/login/components/Login.vue')['default']
+    Login: typeof import('./../pages/login/components/Login.vue')['default']
     MultiImageUpload: typeof import('./../components/Upload/MultiImageUpload.vue')['default']
     NoticeDropdown: typeof import('./../components/NoticeDropdown/index.vue')['default']
     OperationColumn: typeof import('./../components/OperationColumn/index.vue')['default']

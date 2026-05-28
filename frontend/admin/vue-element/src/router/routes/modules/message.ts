@@ -14,7 +14,7 @@ const messageRoutes: RouteRecordRaw[] = [
       {
         path: "messages",
         name: "InboxPage",
-        component: () => import("@/views/core/message/index.vue"),
+        component: () => import("@/pages/core/message/index.vue"),
         meta: {
           title: "routes.profile.internalMessage",
           icon: "lucide:message-circle-more",
