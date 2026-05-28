@@ -7,12 +7,13 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
-	"github.com/tx7do/kratos-bootstrap/bootstrap"
 	"go-wind-admin/app/admin/service/internal/data"
 	"go-wind-admin/app/admin/service/internal/server"
 	"go-wind-admin/app/admin/service/internal/service"
 	"go-wind-admin/pkg/authorizer"
+
+	"github.com/go-kratos/kratos/v2"
+	"github.com/tx7do/kratos-bootstrap/bootstrap"
 )
 
 // Injectors from wire.go:
@@ -74,7 +75,7 @@ func initApp(context *bootstrap.Context) (*kratos.App, func(), error) {
 	taskRepo := data.NewTaskRepo(context, entClient)
 	taskService := service.NewTaskService(context, taskRepo, userRepo)
 	fileRepo := data.NewFileRepo(context, entClient)
-	minIOClient := data.NewMinIoClient(context)
+	minIOClient := data.NewOSSClient(context)
 	fileService := service.NewFileService(context, fileRepo, minIOClient)
 	fileTransferService := service.NewFileTransferService(context, minIOClient, fileRepo)
 	dictTypeRepo := data.NewDictTypeRepo(context, entClient)

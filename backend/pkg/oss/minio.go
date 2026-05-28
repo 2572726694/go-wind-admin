@@ -3,18 +3,21 @@ package oss
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/tx7do/go-utils/timeutil"
 	"github.com/tx7do/go-utils/trans"
 
 	conf "github.com/tx7do/kratos-bootstrap/api/gen/go/conf/v1"
 	ossMinio "github.com/tx7do/kratos-bootstrap/oss/minio"
 
+	ossconfig "go-wind-admin/api/gen/go/oss_config/v1"
 	storageV1 "go-wind-admin/api/gen/go/storage/service/v1"
 )
 
@@ -24,22 +27,120 @@ const (
 	DefaultContentType = "application/octet-stream"
 )
 
-// MinIOClient MinIO 客户端封装
+// MinIOClient MinIO 客户端封装（兼容所有 S3 协议供应商）
 type MinIOClient struct {
-	mc         *minio.Client
-	conf       *conf.OSS
-	log        *log.Helper
-	hmacSecret []byte
+	mc           *minio.Client
+	conf         *conf.OSS
+	log          *log.Helper
+	hmacSecret   []byte
+	uploadHost   string // 上传链接的主机名（用于预签名 URL 重写）
+	downloadHost string // 下载链接的主机名（用于预签名 URL 重写）
+	endpoint     string // 实际服务端点
 }
 
 func NewMinIoClient(cfg *conf.Bootstrap, logger log.Logger) *MinIOClient {
 	l := log.NewHelper(log.With(logger, "module", "minio/data/admin-service"))
 	return &MinIOClient{
-		log:        l,
-		conf:       cfg.Oss,
-		mc:         ossMinio.NewClient(cfg.Oss),
-		hmacSecret: staticHMACSecret,
+		log:          l,
+		conf:         cfg.Oss,
+		mc:           ossMinio.NewClient(cfg.Oss),
+		hmacSecret:   staticHMACSecret,
+		uploadHost:   cfg.Oss.Minio.GetUploadHost(),
+		downloadHost: cfg.Oss.Minio.GetDownloadHost(),
+		endpoint:     cfg.Oss.Minio.GetEndpoint(),
 	}
+}
+
+// NewMinIOClientFromS3Config 从 S3 兼容配置创建 MinIO 客户端（支持多云供应商）。
+// 阿里云、腾讯云、七牛云、华为云、百度云、AWS 等均兼容 S3 协议，可复用 MinIO SDK。
+func NewMinIOClientFromS3Config(s3cfg *ossconfig.S3CompatibleConfig, ossConf *conf.OSS, logger log.Logger) (*MinIOClient, error) {
+	l := log.NewHelper(log.With(logger, "module", "oss/data/admin-service"))
+
+	if s3cfg == nil {
+		return nil, fmt.Errorf("S3CompatibleConfig is nil")
+	}
+	if s3cfg.Endpoint == "" {
+		return nil, fmt.Errorf("S3CompatibleConfig.Endpoint is empty")
+	}
+
+	opts := &minio.Options{
+		Region: s3cfg.GetRegion(),
+	}
+
+	if s3cfg.GetToken() != "" {
+		opts.Creds = credentials.NewStaticV4(s3cfg.GetAccessKey(), s3cfg.GetSecretKey(), s3cfg.GetToken())
+	} else {
+		opts.Creds = credentials.NewStaticV4(s3cfg.GetAccessKey(), s3cfg.GetSecretKey(), "")
+	}
+
+	opts.Secure = s3cfg.GetUseSsl()
+
+	mc, err := minio.New(s3cfg.GetEndpoint(), opts)
+	if err != nil {
+		l.Errorf("Failed to create MinIO client: %v", err)
+		return nil, fmt.Errorf("failed to create MinIO client: %w", err)
+	}
+
+	return &MinIOClient{
+		log:          l,
+		conf:         ossConf,
+		mc:           mc,
+		hmacSecret:   staticHMACSecret,
+		uploadHost:   s3cfg.GetUploadHost(),
+		downloadHost: s3cfg.GetDownloadHost(),
+		endpoint:     s3cfg.GetEndpoint(),
+	}, nil
+}
+
+// NewOSSClientFromProviderConfig 根据多供应商配置，自动选择活跃供应商并创建对应的客户端。
+func NewOSSClientFromProviderConfig(pc *ossconfig.OssProviderConfig, bootstrapOss *conf.OSS, logger log.Logger) (*MinIOClient, error) {
+	if pc == nil {
+		return nil, fmt.Errorf("OssProviderConfig is nil")
+	}
+
+	var s3cfg *ossconfig.S3CompatibleConfig
+	var providerName string
+
+	switch pc.GetProvider() {
+	case ossconfig.OssProviderType_OSS_PROVIDER_MINIO:
+		s3cfg = pc.GetMinio()
+		providerName = "MinIO"
+	case ossconfig.OssProviderType_OSS_PROVIDER_ALIYUN:
+		s3cfg = pc.GetAliyun()
+		providerName = "Aliyun"
+	case ossconfig.OssProviderType_OSS_PROVIDER_TENCENT:
+		s3cfg = pc.GetTencent()
+		providerName = "Tencent"
+	case ossconfig.OssProviderType_OSS_PROVIDER_QINIU:
+		s3cfg = pc.GetQiniu()
+		providerName = "Qiniu"
+	case ossconfig.OssProviderType_OSS_PROVIDER_HUAWEI:
+		s3cfg = pc.GetHuawei()
+		providerName = "Huawei"
+	case ossconfig.OssProviderType_OSS_PROVIDER_BAIDU:
+		s3cfg = pc.GetBaidu()
+		providerName = "Baidu"
+	case ossconfig.OssProviderType_OSS_PROVIDER_AWS:
+		s3cfg = pc.GetAws()
+		providerName = "AWS"
+	case ossconfig.OssProviderType_OSS_PROVIDER_GOOGLE:
+		s3cfg = pc.GetGoogle()
+		providerName = "Google"
+	case ossconfig.OssProviderType_OSS_PROVIDER_AZURE:
+		s3cfg = pc.GetAzure()
+		providerName = "Azure"
+	default:
+		return nil, fmt.Errorf("unsupported OSS provider type: %v", pc.GetProvider())
+	}
+
+	if s3cfg == nil {
+		return nil, fmt.Errorf("provider %s config is nil", providerName)
+	}
+
+	l := log.NewHelper(log.With(logger, "module", "oss/data/admin-service"))
+	l.Infof("Initializing OSS client with provider: %s (endpoint: %s)", providerName, s3cfg.GetEndpoint())
+
+	return NewMinIOClientFromS3Config(s3cfg, bootstrapOss, logger)
 }
 
 // GetClient returns the underlying MinIO client
@@ -122,10 +223,10 @@ func (c *MinIOClient) GetUploadPresignedUrl(ctx context.Context, req *storageV1.
 		}
 
 		uploadUrl = presignedURL.String()
-		uploadUrl = ReplaceEndpointHost(downloadUrl, c.conf.Minio.UploadHost, c.conf.Minio.Endpoint)
+		uploadUrl = ReplaceEndpointHost(downloadUrl, c.uploadHost, c.endpoint)
 
 		downloadUrl = JoinObjectUrl(presignedURL.Host, bucketName, objectName)
-		downloadUrl = ReplaceEndpointHost(downloadUrl, c.conf.Minio.DownloadHost, c.conf.Minio.Endpoint)
+		downloadUrl = ReplaceEndpointHost(downloadUrl, c.downloadHost, c.endpoint)
 		if !strings.HasPrefix(downloadUrl, presignedURL.Scheme) {
 			downloadUrl = presignedURL.Scheme + "://" + downloadUrl
 		}
@@ -144,10 +245,10 @@ func (c *MinIOClient) GetUploadPresignedUrl(ctx context.Context, req *storageV1.
 		}
 
 		uploadUrl = presignedURL.String()
-		uploadUrl = ReplaceEndpointHost(downloadUrl, c.conf.Minio.UploadHost, c.conf.Minio.Endpoint)
+		uploadUrl = ReplaceEndpointHost(downloadUrl, c.uploadHost, c.endpoint)
 
 		downloadUrl = JoinObjectUrl(presignedURL.Host, bucketName, objectName)
-		uploadUrl = ReplaceEndpointHost(downloadUrl, c.conf.Minio.DownloadHost, c.conf.Minio.Endpoint)
+		uploadUrl = ReplaceEndpointHost(downloadUrl, c.downloadHost, c.endpoint)
 		if !strings.HasPrefix(downloadUrl, presignedURL.Scheme) {
 			downloadUrl = presignedURL.Scheme + "://" + downloadUrl
 		}
@@ -256,7 +357,7 @@ func (c *MinIOClient) UploadFile(
 		return info, "", "", storageV1.ErrorUploadFailed("failed to upload fileContent")
 	}
 
-	downloadUrl := JoinObjectUrl(c.conf.Minio.DownloadHost, bucketName, objectName)
+	downloadUrl := JoinObjectUrl(c.downloadHost, bucketName, objectName)
 	storagePath := JoinObjectUrl("", bucketName, objectName)
 
 	return info, storagePath, downloadUrl, nil
@@ -333,7 +434,7 @@ func (c *MinIOClient) getDownloadUrlWithStorageObjectPresigned(ctx context.Conte
 	}
 
 	downloadUrl := presignedURL.String()
-	downloadUrl = ReplaceEndpointHost(downloadUrl, c.conf.Minio.DownloadHost, c.conf.Minio.Endpoint)
+	downloadUrl = ReplaceEndpointHost(downloadUrl, c.downloadHost, c.endpoint)
 	if !strings.HasPrefix(downloadUrl, presignedURL.Scheme) {
 		downloadUrl = presignedURL.Scheme + "://" + downloadUrl
 	}
@@ -435,7 +536,7 @@ func (c *MinIOClient) downloadFileWithStorageObjectPresigned(ctx context.Context
 	}
 
 	downloadUrl := presignedURL.String()
-	downloadUrl = ReplaceEndpointHost(downloadUrl, c.conf.Minio.DownloadHost, c.conf.Minio.Endpoint)
+	downloadUrl = ReplaceEndpointHost(downloadUrl, c.downloadHost, c.endpoint)
 	if !strings.HasPrefix(downloadUrl, presignedURL.Scheme) {
 		downloadUrl = presignedURL.Scheme + "://" + downloadUrl
 	}

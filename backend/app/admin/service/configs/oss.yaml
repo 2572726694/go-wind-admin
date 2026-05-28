@@ -1,4 +1,9 @@
 oss:
+  # 可用的供应商类型
+  # 可选值: minio, aliyun, tencent, qiniu, huawei, baidu, aws, google, azure
+  provider: "minio"
+
+  # ─── MinIO ───
   minio:
     endpoint: "minio:9000"
     upload_host: "minio:9000"
@@ -7,3 +12,97 @@ oss:
     secret_key: "*Abcd123456"
     token: ""
     use_ssl: false
+
+  # ─── 阿里云 OSS ───
+  # https://www.aliyun.com/product/oss
+  # endpoint 格式: oss-{地域}.aliyuncs.com（如 oss-cn-hangzhou、oss-cn-shanghai）
+  #aliyun:
+  #  endpoint: "oss-cn-hangzhou.aliyuncs.com"
+  #  upload_host: "oss-cn-hangzhou.aliyuncs.com"
+  #  download_host: "oss-cn-hangzhou.aliyuncs.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  region: "cn-hangzhou"
+  #  use_ssl: true
+
+  # ─── 腾讯云 COS ───
+  # https://cloud.tencent.com/product/cos
+  # endpoint 格式: cos.{地域}.myqcloud.com（如 cos.ap-guangzhou、cos.ap-shanghai）
+  #tencent:
+  #  endpoint: "cos.ap-guangzhou.myqcloud.com"
+  #  upload_host: "cos.ap-guangzhou.myqcloud.com"
+  #  download_host: "cos.ap-guangzhou.myqcloud.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  region: "ap-guangzhou"
+  #  use_ssl: true
+
+  # ─── 七牛云 Kodo ───
+  # https://www.qiniu.com/products/kodo
+  # 兼容 S3 协议，endpoint 格式: s3-{区域}.qiniucs.com
+  #qiniu:
+  #  endpoint: "s3-cn-south-1.qiniucs.com"
+  #  upload_host: "s3-cn-south-1.qiniucs.com"
+  #  download_host: "s3-cn-south-1.qiniucs.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  region: "cn-south-1"
+  #  use_ssl: true
+
+  # ─── 华为云 OBS ───
+  # https://www.huaweicloud.com/product/obs.html
+  # endpoint 格式: obs.{地域}.myhuaweicloud.com
+  #huawei:
+  #  endpoint: "obs.cn-north-4.myhuaweicloud.com"
+  #  upload_host: "obs.cn-north-4.myhuaweicloud.com"
+  #  download_host: "obs.cn-north-4.myhuaweicloud.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  region: "cn-north-4"
+  #  use_ssl: true
+
+  # ─── 百度云 BOS ───
+  # https://cloud.baidu.com/product/bos.html
+  # endpoint 格式: s3.{地域}.bcebos.com
+  #baidu:
+  #  endpoint: "s3.bj.bcebos.com"
+  #  upload_host: "s3.bj.bcebos.com"
+  #  download_host: "s3.bj.bcebos.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  region: "bj"
+  #  use_ssl: true
+
+  # ─── 亚马逊云 AWS S3 ───
+  # https://aws.amazon.com/s3/
+  # endpoint 格式: s3.{地域}.amazonaws.com
+  #aws:
+  #  endpoint: "s3.ap-northeast-1.amazonaws.com"
+  #  upload_host: "s3.ap-northeast-1.amazonaws.com"
+  #  download_host: "s3.ap-northeast-1.amazonaws.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  region: "ap-northeast-1"
+  #  use_ssl: true
+
+  # ─── 谷歌云 GCS ───
+  # https://cloud.google.com/storage
+  # GCS 兼容 S3 协议，使用全球统一 endpoint
+  #google:
+  #  endpoint: "storage.googleapis.com"
+  #  upload_host: "storage.googleapis.com"
+  #  download_host: "storage.googleapis.com"
+  #  access_key: ""
+  #  secret_key: ""
+  #  use_ssl: true
+
+  # ─── 微软云 Azure Blob ───
+  # https://azure.microsoft.com/products/storage/blobs/
+  # Azure 兼容 S3 协议需使用专用 endpoint
+  #azure:
+  #  endpoint: "<account>.blob.core.windows.net"
+  #  upload_host: "<account>.blob.core.windows.net"
+  #  download_host: "<account>.blob.core.windows.net"
+  #  access_key: "<account>"
+  #  secret_key: ""
+  #  use_ssl: true

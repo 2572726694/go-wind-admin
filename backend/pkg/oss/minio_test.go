@@ -10,6 +10,8 @@ import (
 
 	storageV1 "go-wind-admin/api/gen/go/storage/service/v1"
 
+	ossconfig "go-wind-admin/api/gen/go/oss_config/v1"
+
 	conf "github.com/tx7do/kratos-bootstrap/api/gen/go/conf/v1"
 )
 
@@ -25,6 +27,21 @@ func createTestClient() *MinIOClient {
 			},
 		},
 	}, log.DefaultLogger)
+}
+
+func createTestClientFromS3Config() *MinIOClient {
+	s3cfg := &ossconfig.S3CompatibleConfig{
+		Endpoint:     "127.0.0.1:9000",
+		UploadHost:   "127.0.0.1:9000",
+		DownloadHost: "127.0.0.1:9000",
+		AccessKey:    "root",
+		SecretKey:    "*Abcd123456",
+	}
+	client, err := NewMinIOClientFromS3Config(s3cfg, &conf.OSS{}, log.DefaultLogger)
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
 
 func TestMinIoClient(t *testing.T) {

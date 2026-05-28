@@ -22,7 +22,7 @@ import (
 var ProviderSet = wire.NewSet(
 	data.NewRedisClient,
 	data.NewEntClient,
-	data.NewMinIoClient,
+	data.NewOSSClient,
 
 	data.NewClientType,
 
