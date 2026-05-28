@@ -52,6 +52,10 @@ managed:
     - file_option: go_package
       path: resource/service/v1
       value: go-wind-admin/api/gen/go/permission/service/v1;resourcepb
+    - file_option: go_package
+      path: conf/v1
+      value: go-wind-admin/api/gen/go/oss_config/v1;ossconfig
+  
 
 plugins:
   # generate go code

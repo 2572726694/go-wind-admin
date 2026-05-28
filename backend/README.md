@@ -188,6 +188,221 @@ make lint        # 运行 golangci-lint 静态检查
 make vet         # 运行 go vet 分析
 ```
 
+## SQL 驱动的代码生成
+
+项目内置了 `go-wind-toolkit` 工具链，支持**从 SQL 建表语句自动生成全套代码**，开发新模块时无需手动编写样板代码。
+
+### 工具概览
+
+| 工具 | 作用 | 生成产物 |
+|------|------|----------|
+| `sql2orm` | SQL → ORM Schema | Ent Schema 文件（Model 层） |
+| `sql2proto` | SQL → Protobuf 定义 | `.proto` 文件（API 接口层） |
+| `sql2kratos` | SQL → Kratos 骨架 | Proto + Schema + Repo + Service + Server 全套代码 |
+
+> 这些工具通过 `make init` 自动安装，也可单独安装：
+> ```bash
+> go install github.com/tx7do/go-wind-toolkit/sql-orm/cmd/sql2orm@latest
+> go install github.com/tx7do/go-wind-toolkit/sql-proto/cmd/sql2proto@latest
+> go install github.com/tx7do/go-wind-toolkit/sql-kratos/cmd/sql2kratos@latest
+> ```
+
+### sql2orm — SQL → Ent Schema
+
+从数据库表结构生成 Ent ORM 的 Schema 文件。
+
+```bash
+# 生成所有表的 Ent Schema
+sql2orm \
+  --orm "ent" \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --schema-path "./internal/data/ent/schema"
+
+# 只生成指定表
+sql2orm \
+  --orm "ent" \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --schema-path "./internal/data/ent/schema" \
+  --tables "sys_orders,sys_order_items"
+
+# 排除某些表
+sql2orm \
+  --orm "ent" \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --schema-path "./internal/data/ent/schema" \
+  --exclude-tables "sys_users,sys_roles"
+
+# PostgreSQL
+sql2orm \
+  --orm "ent" \
+  --dsn "postgres://postgres:pass@localhost:5432/go_wind_admin?sslmode=disable" \
+  --schema-path "./internal/data/ent/schema"
+```
+
+**参数说明：**
+
+| 参数 | 简写 | 说明 | 默认值 |
+|------|------|------|--------|
+| `--dsn` | `-n` | 数据库连接串 | 必填 |
+| `--orm` | `-o` | ORM 类型：`ent` 或 `gorm` | `ent` |
+| `--schema-path` | `-s` | Schema 输出路径 | `./ent/schema/` |
+| `--dao-path` | `-d` | DAO 输出路径（仅 gorm） | `./daos/` |
+| `--tables` | `-t` | 指定表名（逗号分隔，空=全部） | 全部 |
+| `--exclude-tables` | `-e` | 排除的表名 | 无 |
+| `--drv` | `-v` | 数据库驱动（`mysql`/`postgres`） | `mysql` |
+
+### sql2proto — SQL → Protobuf 定义
+
+从数据库表结构生成 `.proto` 文件（包含 message 定义和 service 接口）。
+
+```bash
+# 生成 gRPC 服务定义
+sql2proto \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --output "./api/protos" \
+  --type "grpc" \
+  --module "order" \
+  --version "v1"
+
+# 生成 REST 服务定义
+sql2proto \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --output "./api/protos" \
+  --type "rest" \
+  --module "admin" \
+  --src-module "order"
+
+# 只处理特定表
+sql2proto \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --output "./api/protos" \
+  --type "grpc" \
+  --module "order" \
+  --includes "sys_orders"
+```
+
+**参数说明：**
+
+| 参数 | 简写 | 说明 | 默认值 |
+|------|------|------|--------|
+| `--dsn` | `-n` | 数据库连接串 | 必填 |
+| `--output` | `-o` | Proto 输出路径 | `./api/protos/` |
+| `--type` | `-t` | 服务类型：`grpc` 或 `rest` | `grpc` |
+| `--module` | `-m` | 模块名（如 `order`） | `admin` |
+| `--version` | `-v` | API 版本 | `v1` |
+| `--includes` | `-i` | 指定表名 | 全部 |
+| `--excludes` | `-e` | 排除的表名 | 无 |
+| `--src-module` | `-s` | REST 服务的源模块名 | `user` |
+
+### sql2kratos — SQL → Kratos 全套代码（推荐）
+
+**一站式工具**，一次性从数据库生成 Proto + Schema + Repo + Service + Server 全套骨架代码。
+
+```bash
+# 一站式生成 gRPC 服务全套代码
+sql2kratos \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --project "go-wind-admin" \
+  --module "order" \
+  --service "order" \
+  --orm "ent" \
+  --servers "grpc" \
+  --output "."
+
+# 只生成特定表的代码
+sql2kratos \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --project "go-wind-admin" \
+  --module "order" \
+  --service "order" \
+  --orm "ent" \
+  --servers "grpc" \
+  --includes "sys_orders,sys_order_items"
+
+# 只生成 Service 和 Repo，不生成 Proto 和 ORM（适合已有 Proto 的增量开发）
+sql2kratos \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --project "go-wind-admin" \
+  --module "order" \
+  --service "order" \
+  --gen-proto=false \
+  --gen-orm=false
+```
+
+**参数说明：**
+
+| 参数 | 简写 | 说明 | 默认值 |
+|------|------|------|--------|
+| `--dsn` | `-n` | 数据库连接串 | 必填 |
+| `--project` | `-p` | 项目名 | `kratos-admin` |
+| `--module` | `-m` | 目标模块名 | `admin` |
+| `--service` | `-c` | 服务名 | `user` |
+| `--orm` | `-r` | ORM 类型：`ent` / `gorm` | `ent` |
+| `--servers` | `-g` | 服务类型：`grpc` / `rest` | `grpc` |
+| `--output` | `-o` | 输出路径 | `./api/protos/` |
+| `--includes` | `-i` | 指定表名 | 全部 |
+| `--excludes` | `-e` | 排除的表名 | 无 |
+| `--gen-proto` | `-q` | 是否生成 Proto | `true` |
+| `--gen-orm` | `-z` | 是否生成 ORM Schema | `true` |
+| `--gen-data` | `-l` | 是否生成 Data 层（Repo） | `true` |
+| `--gen-svc` | `-a` | 是否生成 Service 层 | `true` |
+| `--gen-srv` | `-w` | 是否生成 Server 层 | `true` |
+| `--gen-main` | `-k` | 是否生成 Main 入口 | `true` |
+| `--repo` | `-x` | 是否使用 Repository 模式 | `true` |
+| `--src-module` | `-s` | REST 服务的源模块名 | `user` |
+| `--version` | `-v` | API 版本 | `v1` |
+
+### 新模块开发完整示例
+
+以新增"订单管理"模块为例，完整流程如下：
+
+```bash
+# 1. 先在数据库中建好 sys_orders 表（CREATE TABLE ...）
+
+# 2. 在 backend 目录下，一站式生成全套骨架代码
+cd backend
+sql2kratos \
+  --dsn "mysql://root:123456@tcp(localhost:3306)/go_wind_admin" \
+  --project "go-wind-admin" \
+  --module "order" \
+  --service "order" \
+  --orm "ent" \
+  --servers "grpc" \
+  --includes "sys_orders" \
+  --output "."
+
+# 3. 生成 Ent ORM 客户端代码
+cd app/admin/service
+make ent
+
+# 4. 回到 backend 根目录，生成 Protobuf Go 代码
+cd ../../..
+make api
+
+# 5. 回到服务目录，生成 Wire 依赖注入
+cd app/admin/service
+make wire
+
+# 6. 启动服务验证
+go run ./cmd/server -c ./configs
+```
+
+> **提示**：也可以分步使用三个工具单独生成，例如只想更新 Schema 时用 `sql2orm`，只想更新 Proto 时用 `sql2proto`。
+
+### 代码生成流程图
+
+```text
+SQL 建表语句
+    │
+    ├── sql2orm ──→ Ent Schema ──→ make ent ──→ Ent ORM 客户端（自动生成的 DAO）
+    ├── sql2proto ──→ .proto 文件 ──→ make api ──→ Go 接口代码 + TypeScript 前端类型
+    └── sql2kratos ──→ Service/Repo/Server 骨架代码
+                           │
+                           └── make wire ──→ 依赖注入（自动连接各层）
+```
+
+> **注意**：这些工具连接的是**真实数据库**，使用前需确保数据库已建好表且数据库服务正在运行。
+
 ## 开发模式：Air 热更新
 
 开发时修改 `.go` / `.yaml` 文件后自动编译重启，无需手动停止服务。
