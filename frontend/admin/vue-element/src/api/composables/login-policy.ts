@@ -1,3 +1,4 @@
+import { computed } from "vue";
 import {
   useMutation,
   type UseMutationOptions,
@@ -9,6 +10,8 @@ import type {
   authenticationservicev1_GetLoginPolicyRequest,
   authenticationservicev1_ListLoginPolicyResponse,
   authenticationservicev1_LoginPolicy,
+  authenticationservicev1_LoginPolicy_Method as LoginPolicy_Method,
+  authenticationservicev1_LoginPolicy_Type as LoginPolicy_Type,
 } from "@/api/generated/admin/service/v1";
 import { makeUpdateMask, type PaginationQuery } from "@/core/transport/rest";
 import {
@@ -19,6 +22,9 @@ import {
   deleteLoginPolicy,
 } from "@/api/service/login-policy";
 import { queryClient } from "@/plugins/vue-query";
+import { i18n } from "@/i18n";
+
+const t = i18n.global.t;
 
 // ==============================
 // 登录策略管理
@@ -84,4 +90,59 @@ export function useDeleteLoginPolicy(
     mutationFn: (req) => deleteLoginPolicy(req),
     ...options,
   });
+}
+
+// ==============================
+// 登录策略枚举与工具函数
+// ==============================
+
+export const loginPolicyTypeList = computed(() => [
+  { value: "BLACKLIST", label: t("enum.loginPolicy.type.BLACKLIST") },
+  { value: "WHITELIST", label: t("enum.loginPolicy.type.WHITELIST") },
+]);
+
+export const loginPolicyMethodList = computed(() => [
+  { value: "IP", label: t("enum.loginPolicy.method.IP") },
+  { value: "MAC", label: t("enum.loginPolicy.method.MAC") },
+  { value: "REGION", label: t("enum.loginPolicy.method.REGION") },
+  { value: "TIME", label: t("enum.loginPolicy.method.TIME") },
+  { value: "DEVICE", label: t("enum.loginPolicy.method.DEVICE") },
+]);
+
+const LOGIN_POLICY_METHOD_COLOR_MAP: Record<string, string> = {
+  IP: "#4096FF",
+  MAC: "#909399",
+  REGION: "#FF9A2E",
+  TIME: "#F56C6C",
+  DEVICE: "#86909C",
+  DEFAULT: "#86909C",
+};
+
+export function loginPolicyMethodToColor(methodName: LoginPolicy_Method) {
+  return (
+    LOGIN_POLICY_METHOD_COLOR_MAP[methodName as string] || LOGIN_POLICY_METHOD_COLOR_MAP.DEFAULT
+  );
+}
+
+export function loginPolicyTypeToName(typeName: LoginPolicy_Type) {
+  const values = loginPolicyTypeList.value;
+  const matchedItem = values.find((item) => item.value === typeName);
+  return matchedItem ? matchedItem.label : "";
+}
+
+export function loginPolicyTypeToColor(typeName: LoginPolicy_Type) {
+  switch (typeName) {
+    case "BLACKLIST":
+      return "red";
+    case "WHITELIST":
+      return "green";
+    default:
+      return "gray";
+  }
+}
+
+export function loginPolicyMethodToName(methodName: LoginPolicy_Method) {
+  const values = loginPolicyMethodList.value;
+  const matchedItem = values.find((item) => item.value === methodName);
+  return matchedItem ? matchedItem.label : "";
 }

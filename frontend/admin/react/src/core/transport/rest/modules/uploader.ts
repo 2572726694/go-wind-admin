@@ -1,6 +1,6 @@
-import type {AxiosRequestConfig, AxiosResponse} from 'axios';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import type {RequestClient} from '../request-client';
+import type { RequestClient } from '../request-client';
 
 class FileUploader {
   private client: RequestClient;
@@ -11,7 +11,6 @@ class FileUploader {
 
   public async upload(
     url: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: { file: Blob | File } & Record<string, any>,
     config?: AxiosRequestConfig,
   ): Promise<AxiosResponse> {
@@ -38,4 +37,4 @@ class FileUploader {
   }
 }
 
-export {FileUploader};
+export { FileUploader };

@@ -1,5 +1,7 @@
-import { BUILT_IN_THEME_PRESETS } from "./constants";
-import { generatorColorVariables } from "@/utils/theme";
+import { BUILT_IN_THEME_PRESETS } from "./config/constants";
+import type { Preferences } from "./types";
+import { generateColorVariables, generatorColorVariables } from "@/utils/theme";
+import { toHex } from "@/utils/color";
 
 /**
  * 更新 CSS 变量的函数
@@ -48,12 +50,22 @@ function updateCSSVariables(preferences: Preferences) {
 
   const theme = preferences?.theme ?? {};
 
-  const { builtinType, mode, radius } = theme;
+  const { builtinType, mode, radius, semiDarkSidebar, semiDarkHeader } = theme;
 
   // html 设置 dark 类
   if (Reflect.has(theme, "mode")) {
     const dark = isDarkTheme(mode);
     root.classList.toggle("dark", dark);
+  }
+
+  // html 设置 semi-dark-sidebar / semi-dark-header
+  // 仅在浅色模式下生效：给侧边栏/顶栏启用深色背景
+  const isDark = isDarkTheme(mode);
+  if (Reflect.has(theme, "semiDarkSidebar")) {
+    root.classList.toggle("semi-dark-sidebar", !isDark && !!semiDarkSidebar);
+  }
+  if (Reflect.has(theme, "semiDarkHeader")) {
+    root.classList.toggle("semi-dark-header", !isDark && !!semiDarkHeader);
   }
 
   // html 设置 data-theme=[builtinType]
@@ -106,30 +118,52 @@ function updateMainColorVariables(preference: Preferences) {
   }
   const { colorDestructive, colorPrimary, colorSuccess, colorWarning } = preference.theme;
 
-  const colorVariables = generatorColorVariables([
-    { color: colorPrimary, name: "primary" },
-    { alias: "warning", color: colorWarning, name: "yellow" },
-    { alias: "success", color: colorSuccess, name: "green" },
-    { alias: "destructive", color: colorDestructive, name: "red" },
+  // 将颜色统一转换为 hex 格式（支持 HSL/RGB/Hex 输入）
+  const hexPrimary = toHex(colorPrimary || "#1677ff");
+  const hexSuccess = toHex(colorSuccess || "#52c41a");
+  const hexWarning = toHex(colorWarning || "#faad14");
+  const hexDestructive = toHex(colorDestructive || "#ff4d4f");
+
+  // 1. 生成自定义颜色变量 (--primary-500, --success-500, ...)
+  const customVariables = generatorColorVariables([
+    { color: hexPrimary, name: "primary" },
+    { alias: "warning", color: hexWarning, name: "yellow" },
+    { alias: "success", color: hexSuccess, name: "green" },
+    { alias: "destructive", color: hexDestructive, name: "red" },
   ]);
 
-  // 要设置的 CSS 变量映射
-  const colorMappings = {
+  // 2. 生成 Element Plus 颜色变量 (--el-color-primary, --el-color-primary-light-1, ...)
+  const mode = isDarkTheme(preference.theme.mode) ? "dark" : "light";
+  const epVariables = generateColorVariables({
+    colorPrimary: hexPrimary,
+    colorSuccess: hexSuccess,
+    colorWarning: hexWarning,
+    colorDestructive: hexDestructive,
+    mode,
+  });
+
+  // 3. 使用内联样式设置 Element Plus 变量（最高优先级，不会被覆盖）
+  const root = document.documentElement;
+  Object.entries(epVariables).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
+
+  // 4. 设置映射变量 (--primary-500 → --primary 等)
+  const colorMappings: Record<string, string> = {
     "--green-500": "--success",
     "--primary-500": "--primary",
     "--red-500": "--destructive",
     "--yellow-500": "--warning",
   };
-
-  // 统一处理颜色变量的更新
   Object.entries(colorMappings).forEach(([sourceVar, targetVar]) => {
-    const colorValue = colorVariables[sourceVar];
+    const colorValue = customVariables[sourceVar];
     if (colorValue) {
-      document.documentElement.style.setProperty(targetVar, colorValue);
+      root.style.setProperty(targetVar, colorValue);
     }
   });
 
-  executeUpdateCSSVariables(colorVariables);
+  // 5. 自定义变量通过 style 标签设置
+  executeUpdateCSSVariables(customVariables);
 }
 
 function isDarkTheme(theme: string) {

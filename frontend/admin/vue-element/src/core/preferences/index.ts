@@ -1,4 +1,5 @@
 import { preferencesManager } from "./preferences";
+import type { Preferences } from "./types";
 
 // 偏好设置（带有层级关系）
 const preferences: Preferences = preferencesManager.getPreferences.apply(preferencesManager);
@@ -24,5 +25,6 @@ export {
   updatePreferences,
 };
 
-export * from "./constants";
+export * from "./config";
+export * from "./types";
 export * from "./use-preferences";

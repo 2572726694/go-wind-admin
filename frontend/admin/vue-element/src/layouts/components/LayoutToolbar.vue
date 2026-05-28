@@ -18,12 +18,12 @@
 
       <!-- 全屏 -->
       <div class="navbar-actions__item">
-        <Fullscreen />
+        <LayoutFullscreen />
       </div>
 
       <!-- 布局大小 -->
       <div class="navbar-actions__item">
-        <SizeSelect />
+        <LayoutSizeSelect />
       </div>
 
       <!-- 语言选择 -->
@@ -75,8 +75,8 @@ import { preferences, usePreferences } from "@/core/preferences";
 
 // 导入子组件
 import CommandPalette from "@/components/CommandPalette/index.vue";
-import Fullscreen from "@/components/Fullscreen/index.vue";
-import SizeSelect from "@/components/SizeSelect/index.vue";
+import LayoutFullscreen from "./LayoutFullscreen.vue";
+import LayoutSizeSelect from "./LayoutSizeSelect.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 import NoticeDropdown from "@/components/NoticeDropdown/index.vue";
 

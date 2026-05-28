@@ -7,15 +7,72 @@ import { generateRoutesByBackend, generateRoutesByFrontend } from '@/core/router
 import type { AccessModeType } from '@/core/preferences';
 import React from 'react';
 
-export const createAccessibleRouter = async (options: GenerateMenuAndRoutesOptions) => {
+/**
+ * 从路由列表中分离出：
+ * - layoutRoutes: 包含 MainLayout/AuthGuard 的根路由（path='/'）
+ * - staticRoutes: 不受 AuthGuard 保护的静态路由（auth/login/error 等）
+ */
+function separateRoutes(routes: AppRouteObject[]) {
+  const layoutRoutes: AppRouteObject[] = [];  // path='/' 的布局路由
+  const otherRoutes: AppRouteObject[] = [];    // 其他静态路由（auth/error等）
+
+  for (const route of routes) {
+    if (route.path === '/' && route.children) {
+      layoutRoutes.push(route);
+    } else {
+      otherRoutes.push(route);
+    }
+  }
+
+  return { layoutRoutes, otherRoutes };
+}
+
+export const createAccessibleRouter = async (
+  mode: AccessModeType,
+  options: GenerateMenuAndRoutesOptions,
+) => {
   let routes: AppRouteObject[] = [...options.routes];
 
-  // 前端模式：基于权限过滤路由
-  routes = await generateRoutesByFrontend(
-    routes,
-    options.permissions ?? [],
-    options.forbiddenElement,
-  );
+  // 根据模式生成路由
+  switch (mode) {
+    case 'backend': {
+      // 后端模式：从 API 获取路由树，动态转换组件
+      if (!options.fetchMenuListAsync) {
+        console.warn('[Router] Backend mode requires fetchMenuListAsync, falling back to frontend mode');
+        routes = await generateRoutesByFrontend(
+          routes,
+          options.permissions ?? [],
+          options.forbiddenElement,
+        );
+      } else {
+        // 分离布局路由与静态路由（auth/error 等不受 AuthGuard 保护）
+        const { layoutRoutes, otherRoutes } = separateRoutes(routes);
+
+        // 后端返回的路由树（根节点 component="BasicLayout"，已包含 Layout）
+        const backendRoutes = await generateRoutesByBackend({
+          staticRoutes: layoutRoutes,
+          mode,
+          fetchMenuListAsync: options.fetchMenuListAsync,
+          layoutMap: options.layoutMap,
+          pageMap: options.pageMap,
+        });
+
+        // 合并：后端路由 + 静态路由（auth/error）
+        routes = [...backendRoutes, ...otherRoutes];
+      }
+      break;
+    }
+    case 'frontend':
+    default: {
+      // 前端模式：基于静态路由 + 权限过滤
+      routes = await generateRoutesByFrontend(
+        routes,
+        options.permissions ?? [],
+        options.forbiddenElement,
+      );
+      break;
+    }
+  }
 
   if (options.autoInjectRedirect !== false)
     routes = injectRedirects(routes as unknown as AppRoute[]) as unknown as AppRouteObject[];

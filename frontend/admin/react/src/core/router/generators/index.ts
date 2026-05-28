@@ -1,2 +1,3 @@
 export * from './generate-routes-backend';
-export * from './generate-routes-frontend.ts';
+export * from './generate-routes-frontend';
+export * from './generate-menus';

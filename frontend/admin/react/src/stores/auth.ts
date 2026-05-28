@@ -11,6 +11,7 @@ import {
   refreshTokenMutation,
   registerMutation,
 } from '@/api';
+import { startRefreshTimer, stopRefreshTimer, disconnectSSEServer } from '@/hooks/useTokenRefresh';
 
 /**
  * 令牌载荷
@@ -47,6 +48,8 @@ export interface AuthState {
   logout: (redirect?: boolean) => Promise<void>;
   refreshToken: () => Promise<string>;
   reauthenticate: () => void;
+  /** 强制登出：纯前端清除认证状态 + 跳转登录页，不调后端接口（用于 token 已失效场景） */
+  forceLogout: () => void;
   setUserInfo: (info: UserInfo) => void;
   clearError: () => void;
   $reset: () => void;
@@ -133,7 +136,10 @@ export const useAuthStore = create<AuthState>()(
           set({ userInfo });
           console.log('✅ User info fetched:', userInfo);
 
-          // 4. 执行成功回调或跳转
+          // 4. 启动定时刷新 token
+          startRefreshTimer();
+
+          // 5. 执行成功回调或跳转
           if (onSuccess) {
             onSuccess();
           } else if (userInfo?.homePath) {
@@ -170,13 +176,17 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 登出
-      logout: async (redirect = true) => {
+      // 登出（主动，调后端接口）
+      // 清除状态后由 React 组件响应状态变化自然重定向
+      logout: async (_redirect = true) => {
+        stopRefreshTimer();
+        disconnectSSEServer();
         try {
           await logoutMutation.execute({}).catch(() => {}); // 忽略接口错误
         } finally {
           // 清除 localStorage 中的持久化数据
           localStorage.removeItem('auth-storage');
+          localStorage.removeItem('user-storage');
 
           // 清除内存中的状态
           set({
@@ -189,11 +199,6 @@ export const useAuthStore = create<AuthState>()(
             loginLoading: false,
             registerLoading: false,
           });
-
-          // 跳转
-          if (redirect && window.location.pathname !== '/login') {
-            window.location.href = '/auth/login';
-          }
         }
       },
 
@@ -201,7 +206,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: async () => {
         const { refreshTokenValue: refreshVal } = get();
         if (!refreshVal) {
-          get().reauthenticate();
+          get().forceLogout();
           return '';
         }
 
@@ -225,7 +230,7 @@ export const useAuthStore = create<AuthState>()(
           return response.access_token || '';
         } catch (err) {
           console.error('Refresh token failed:', err);
-          get().reauthenticate();
+          get().forceLogout();
           return '';
         }
       },
@@ -234,8 +239,27 @@ export const useAuthStore = create<AuthState>()(
       reauthenticate: () => {
         console.warn('Token invalid, please re-login');
         set({ error: i18next.t('auth:sessionExpired') });
-        // 可选：自动跳转登录页
-        // window.location.href = '/auth/login';
+      },
+
+      // 强制登出：纯前端操作，不调后端接口
+      // 用于 token 已失效（401）场景，避免调 logout API 又触发 401 死循环
+      // 只清除状态，不做页面跳转（让 React 组件响应状态变化自然重定向）
+      forceLogout: () => {
+        stopRefreshTimer();
+        disconnectSSEServer();
+        console.warn('Force logout: clearing auth state');
+        localStorage.removeItem('auth-storage');
+        localStorage.removeItem('user-storage');
+        set({
+          accessToken: null,
+          refreshTokenValue: null,
+          accessTokenExpireAt: null,
+          refreshTokenExpireAt: null,
+          userInfo: null,
+          error: null,
+          loginLoading: false,
+          registerLoading: false,
+        });
       },
 
       // 设置用户信息

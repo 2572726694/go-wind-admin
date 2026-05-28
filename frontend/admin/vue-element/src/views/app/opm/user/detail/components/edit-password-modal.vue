@@ -5,6 +5,8 @@
     width="500px"
     :close-on-click-modal="false"
     :destroy-on-close="true"
+    append-to-body
+    :lock-scroll="false"
     @close="handleClose"
   >
     <ElForm
@@ -55,6 +57,10 @@ import { useEditUserPassword } from "@/api/composables";
 import { $t } from "@/i18n";
 
 const { mutateAsync: editUserPassword } = useEditUserPassword();
+
+const emit = defineEmits<{
+  success: [];
+}>();
 
 const visible = ref(false);
 const submitLoading = ref(false);
@@ -116,6 +122,7 @@ async function handleSubmit() {
 
     ElMessage.success($t("common.notification.updateSuccess"));
     handleClose();
+    emit("success");
   } catch (error) {
     if (error !== false) {
       ElMessage.error($t("common.notification.updateFailed"));

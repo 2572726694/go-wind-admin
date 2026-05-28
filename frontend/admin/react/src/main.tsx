@@ -10,8 +10,8 @@ const ReactQueryDevtools = import.meta.env.DEV
   : () => null;
 
 import { ThemeProvider } from '@/core/preferences/components/ThemeProvider';
-import { RequestTokenSetup } from '@/core/transport/rest/request-token-setup';
-import { bootstrap, queryClient } from './core';
+import { queryClient } from './core';
+import { bootstrap } from '@/bootstrap.ts';
 
 // 样式
 import 'uno.css';
@@ -34,9 +34,7 @@ bootstrap().then(() => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AntdApp>
-            <RequestTokenSetup>
-              <App />
-            </RequestTokenSetup>
+            <App />
           </AntdApp>
         </ThemeProvider>
 

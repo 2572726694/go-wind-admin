@@ -70,8 +70,7 @@ const [ConnectedDrawer, modalApi] = useProModal({
 });
 
 // === 页面配置 ===
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:manage_tenants",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   // 搜索配置
   search: {
@@ -160,13 +159,13 @@ const pageConfig: ProPageConfig = {
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", text: $t("common.button.edit") },
-          { name: "delete", text: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit") },
+          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
         ],
       },
     ],
   },
-};
+}));
 
 // === 事件处理 ===
 function handleAdd() {

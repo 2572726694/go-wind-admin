@@ -27,7 +27,10 @@ import {
   logoutToLoginPage,
 } from "@/composables/use-token-refresh";
 
+import { createI18nGetErrorMsg } from "@/composables/use-request-error-msg";
+
 const t = i18n.global.t;
+const getErrorMsg = createI18nGetErrorMsg();
 
 // ==============================
 // 登录加载状态（模块级单例）
@@ -71,7 +74,11 @@ const REFRESH_TOKEN_REFRESH_INTERVAL = 12 * 60 * 60 * 1000;
 
 async function fetchUserInfo() {
   try {
-    return (await getMe()) as unknown as UserInfo;
+    const user = await getMe();
+    if (!user) return null;
+    // identityservicev1_User → UserInfo 适配
+    // identityservicev1_User 字段与 BasicUserInfo/UserInfo 兼容，直接作为 UserInfo 使用
+    return user as unknown as UserInfo;
   } catch (error) {
     console.error("fetchUserInfo failed:", error);
     await _doLogout();
@@ -158,19 +165,13 @@ async function login(
   } catch (error) {
     await _doLogout();
 
-    if (error instanceof Error) {
-      ElNotification({
-        title: t("core.authentication.loginFailed"),
-        message: error.message,
-        type: "error",
-      });
-    } else {
-      ElNotification({
-        title: t("core.authentication.loginFailed"),
-        message: t("core.authentication.loginFailedDesc"),
-        type: "error",
-      });
-    }
+    // 使用 i18n 翻译错误消息（与 RequestClient 的 getErrorMsg 一致）
+    const errorMsg = getErrorMsg(error);
+    ElNotification({
+      title: t("core.authentication.loginFailed"),
+      message: errorMsg,
+      type: "error",
+    });
     return null;
   } finally {
     loginLoading.value = false;
@@ -217,8 +218,6 @@ async function getUserPermissionCodes() {
   const accessStore = useAccessStore();
   const userStore = useAppUserStore();
 
-  let userPermissionCodes: string[];
-
   if (userStore.userInfo === null || accessStore.accessCodes === null) {
     const [fetchUserInfoResult, fetchAccessCodeResult] = await Promise.all([
       fetchUserInfo(),
@@ -230,18 +229,16 @@ async function getUserPermissionCodes() {
     }
     userStore.setUserInfo(fetchUserInfoResult);
 
-    const roles = fetchUserInfoResult ? (fetchUserInfoResult.roles ?? []) : [];
+    // 只存权限码，角色码由 userStore.userRoles 管理
     const codes = fetchAccessCodeResult ? (fetchAccessCodeResult.codes ?? []) : [];
-    userPermissionCodes = [...roles, ...codes];
-    accessStore.setAccessCodes(userPermissionCodes);
-  } else {
-    userPermissionCodes = [...(userStore.userInfo.roles || []), ...accessStore.accessCodes];
+    accessStore.setAccessCodes(codes);
   }
 
   startRefreshTimer();
   connectSSEServer();
 
-  return userPermissionCodes;
+  // 返回 true 表示成功获取权限数据
+  return true;
 }
 
 // ==============================

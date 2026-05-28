@@ -15,7 +15,7 @@ export const useApiStore = defineStore('api', () => {
   const userStore = useUserStore();
 
   /**
-   * 查询API列表
+   * 查询API列表hasAccessByRoles
    */
   async function listApi(
     paging?: Paging,

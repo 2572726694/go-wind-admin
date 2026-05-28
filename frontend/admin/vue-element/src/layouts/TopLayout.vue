@@ -57,7 +57,8 @@ const isLogoCollapsed = computed(() => width.value < 768);
     justify-content: space-between;
     width: 100%;
     height: $navbar-height;
-    background-color: $menu-background;
+    background-color: var(--navbar-background);
+    border-bottom: 1px solid var(--navbar-border-color);
 
     &-left {
       display: flex;

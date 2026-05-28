@@ -1,4 +1,4 @@
-import { requestApi, requestClient } from "@/core/transport/rest";
+import { requestApi, RequestClient } from "@/core/transport/rest";
 import { createFileTransferServiceClient } from "@/api/generated/admin/service/v1";
 
 let _instance: ReturnType<typeof createFileTransferServiceClient> | null = null;
@@ -120,7 +120,7 @@ export async function uploadFile(
     fileDirectory,
   });
 
-  await requestClient.upload(
+  await RequestClient.getInstance().upload(
     "admin/v1/file/upload",
     {
       file: fileData,

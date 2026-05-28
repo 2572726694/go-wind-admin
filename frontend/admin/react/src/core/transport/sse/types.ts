@@ -1,7 +1,7 @@
 /**
  * SSE 事件类型（区分默认事件和自定义事件）
  */
-export type SSEEventName = "error" | "message" | "open" | string; // 'message' 是默认事件，其他为自定义事件
+export type SSEEventName = 'error' | 'message' | 'open' | string; // 'message' 是默认事件，其他为自定义事件
 
 /**
  * SSE 事件回调函数类型（T 为数据类型）
@@ -11,7 +11,7 @@ export type SSEEventHandler<T = unknown> = (data: T, event: MessageEvent) => voi
 /**
  * SSE 连接实现方式
  */
-export type SSETransport = "event-source" | "fetch-event-source";
+export type SSETransport = 'event-source' | 'fetch-event-source';
 
 /**
  * SSE 客户端配置
@@ -28,4 +28,4 @@ export interface SSEClientConfig {
 /**
  * SSE 连接状态
  */
-export type SSEConnectionStatus = "connected" | "connecting" | "disconnected" | "error";
+export type SSEConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';

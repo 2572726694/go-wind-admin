@@ -48,8 +48,7 @@ const props = defineProps({
 
 const pageRef = ref();
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:api_audit_log",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -235,14 +234,16 @@ const pageConfig: ProPageConfig = {
       },
     ],
   },
-};
+}));
 </script>
 
 <style lang="scss" scoped>
 .app-container {
-  padding: 20px;
+  height: 100%;
+  padding: 0;
   width: 100%;
   min-width: 0;
-  flex-shrink: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 </style>

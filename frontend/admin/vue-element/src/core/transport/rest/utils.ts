@@ -1,55 +1,12 @@
-/**
- * 移除对象中的 null 和 undefined 值
- * @param obj
- */
-export const removeNullUndefined = (obj: any) =>
-  Object.fromEntries(
-    Object.entries(obj).filter(([v]) => v !== null && v !== undefined && v !== "")
-  );
+import type { HttpResponse } from "./types";
 
 /**
- * 创建列表查询JSON过滤字符串
- * @param formValues 查询表单值
- * @param needCleanTenant 是否需要清理租户字段
+ * 创建更新掩码字符串
+ * @param keys - 字段键名数组
+ * @returns 逗号分隔的字符串
  */
-export function makeQueryString(
-  formValues?: null | object,
-  needCleanTenant: boolean = false
-): string | undefined {
-  if (formValues === null) {
-    return undefined;
-  }
-
-  // 去除掉空值
-  const cleaned: any = removeNullUndefined(formValues);
-
-  if (cleaned === undefined) return undefined;
-
-  // 若是数组，直接按数组处理
-  if (Array.isArray(cleaned)) {
-    return cleaned.length === 0 ? undefined : JSON.stringify(cleaned);
-  }
-
-  // 过滤掉空对象
-  if (Object.keys(cleaned).length === 0) {
-    return undefined;
-  }
-
-  if (needCleanTenant) {
-    // 删除租户相关字段 tenant_id 和 tenantId
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { tenant_id, tenantId, ...rest } = cleaned as Record<string, any>;
-
-    // 过滤掉空对象
-    if (Object.keys(rest).length === 0) {
-      return undefined;
-    }
-
-    return JSON.stringify(rest);
-  }
-
-  // 默认返回整个 cleaned 对象的 JSON 字符串
-  return JSON.stringify(cleaned);
+export function makeUpdateMask(keys: string[]): string {
+  return [...keys, "id"].join(",");
 }
 
 /**
@@ -58,7 +15,9 @@ export function makeQueryString(
 export function defaultIdGenerator(): string {
   try {
     // 优先使用标准 API
-    const rnd = (globalThis as any)?.crypto?.randomUUID?.();
+    const rnd = (
+      globalThis as unknown as { crypto?: { randomUUID?: () => string } }
+    )?.crypto?.randomUUID?.();
     if (typeof rnd === "string" && rnd.length > 0) return rnd;
   } catch {
     // ignore
@@ -68,12 +27,79 @@ export function defaultIdGenerator(): string {
 }
 
 /**
- * 创建更新字段掩码
- * @param keys
+ * 默认的错误消息提取（不依赖 i18n，纯逻辑 fallback）
+ * 按优先级：reason → message → status code → 兜底
+ * 如需 i18n 翻译，通过 RequestClientCallbacks.getErrorMsg 注入
  */
-export function makeUpdateMask(keys: string[]): string {
-  if (keys === undefined || keys.length === 0) {
-    return "";
+export function getDefaultErrorMsg(error: unknown): string {
+  // 网络错误
+  const errStr = String(error ?? "");
+  if (errStr.includes("Network Error")) {
+    return "Network Error";
   }
-  return keys.join(",");
+
+  // 超时
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    String(error.message).includes("timeout")
+  ) {
+    return "Request Timeout";
+  }
+
+  // 获取后端返回数据
+  const resData =
+    error &&
+    typeof error === "object" &&
+    "response" in error &&
+    error.response &&
+    typeof error.response === "object" &&
+    "data" in error.response
+      ? (error.response.data as HttpResponse)
+      : undefined;
+
+  if (!resData) {
+    return "Unknown Error";
+  }
+
+  const { reason, message, code } = resData;
+
+  // 1. 优先使用 reason
+  if (reason) {
+    return reason;
+  }
+
+  // 2. 使用后端 message
+  if (message?.trim()) {
+    return message.trim();
+  }
+
+  // 3. 使用 code
+  if (code) {
+    return `Error ${code}`;
+  }
+
+  // 4. 兜底
+  return "Unknown Error";
+}
+
+export function bindMethods<T extends object>(instance: T): void {
+  const prototype = Object.getPrototypeOf(instance);
+  const propertyNames = Object.getOwnPropertyNames(prototype);
+
+  propertyNames.forEach((propertyName) => {
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, propertyName);
+    const propertyValue = instance[propertyName as keyof T];
+
+    if (
+      typeof propertyValue === "function" &&
+      propertyName !== "constructor" &&
+      descriptor &&
+      !descriptor.get &&
+      !descriptor.set
+    ) {
+      instance[propertyName as keyof T] = propertyValue.bind(instance);
+    }
+  });
 }

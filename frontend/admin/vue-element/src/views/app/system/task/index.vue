@@ -66,8 +66,7 @@ const { mutateAsync: restartAllTask } = useRestartAllTasks();
 const pageRef = ref();
 const drawerRef = ref();
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:task",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -121,17 +120,17 @@ const pageConfig: ProPageConfig = {
     toolbarRight: [
       {
         name: "startAll",
-        text: $t("pages.task.button.startAll"),
+        label: $t("pages.task.button.startAll"),
         attrs: { type: "success" },
       } as ToolsButton,
       {
         name: "stopAll",
-        text: $t("pages.task.button.stopAll"),
+        label: $t("pages.task.button.stopAll"),
         attrs: { type: "danger" },
       } as ToolsButton,
       {
         name: "restartAll",
-        text: $t("pages.task.button.restartAll"),
+        label: $t("pages.task.button.restartAll"),
         attrs: { type: "primary" },
       } as ToolsButton,
       "add",
@@ -171,16 +170,16 @@ const pageConfig: ProPageConfig = {
         width: 240,
         cellType: "tool",
         buttons: [
-          { name: "edit", text: $t("common.button.edit") },
-          { name: "start", text: $t("pages.task.button.start"), attrs: { type: "success" } },
-          { name: "stop", text: $t("pages.task.button.stop"), attrs: { type: "danger" } },
-          { name: "restart", text: $t("pages.task.button.restart"), attrs: { type: "primary" } },
-          { name: "delete", text: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit") },
+          { name: "start", label: $t("pages.task.button.start"), attrs: { type: "success" } },
+          { name: "stop", label: $t("pages.task.button.stop"), attrs: { type: "danger" } },
+          { name: "restart", label: $t("pages.task.button.restart"), attrs: { type: "primary" } },
+          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
         ],
       },
     ],
   },
-};
+}));
 
 function handleAdd() {
   drawerRef.value?.open();

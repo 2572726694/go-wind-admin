@@ -85,8 +85,7 @@ const pageRef = ref();
 const detailDialogVisible = ref(false);
 const detail = ref<any | null>(null);
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:internal_message",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -229,7 +228,7 @@ const pageConfig: ProPageConfig = {
       },
     ],
   },
-};
+}));
 
 async function handleView(row: any) {
   try {

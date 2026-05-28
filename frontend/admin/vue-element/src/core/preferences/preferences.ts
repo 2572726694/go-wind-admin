@@ -2,9 +2,12 @@ import { markRaw, reactive, readonly, watch } from "vue";
 
 import { breakpointsTailwind, useBreakpoints, useDebounceFn } from "@vueuse/core";
 
-import { defaultPreferences } from "./config";
+import { defaultPreferences } from "./config/default";
+import type { DeepPartial, InitialOptions, Preferences } from "./types";
+import type { SupportedLanguagesType } from "./types";
 import { updateCSSVariables } from "./update-css-variables";
 import { StorageManager } from "@/core/storage";
+import { loadLocaleMessages } from "@/i18n";
 import { merge } from "@/utils/merge";
 import { isMacOs } from "@/utils/inference";
 
@@ -55,6 +58,11 @@ class PreferenceManager {
 
     if (Reflect.has(appUpdates, "colorGrayMode") || Reflect.has(appUpdates, "colorWeakMode")) {
       this.updateColorMode(this.state);
+    }
+
+    // 语言切换：加载语言包并同步 vue-i18n locale
+    if (Reflect.has(appUpdates, "locale") && appUpdates.locale) {
+      loadLocaleMessages(appUpdates.locale as SupportedLanguagesType);
     }
   }
 

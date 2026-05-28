@@ -86,17 +86,26 @@ declare global {
   const addComponent: typeof import('../src/components/common/Form/utils/componentMap').addComponent
   const cache: typeof import('react').cache
   const cacheSignal: typeof import('react').cacheSignal
+  const connectSSEServer: typeof import('../src/hooks/useTokenRefresh').connectSSEServer
   const createContext: typeof import('react').createContext
   const createRef: typeof import('react').createRef
   const dayjs2String: typeof import('../src/components/common/Dates/utils/helper').dayjs2String
   const dayjsRang2StringRang: typeof import('../src/components/common/Dates/utils/helper').dayjsRang2StringRang
   const deleteComponent: typeof import('../src/components/common/Form/utils/componentMap').deleteComponent
+  const disconnectSSEServer: typeof import('../src/hooks/useTokenRefresh').disconnectSSEServer
+  const fetchAllDictEntries: typeof import('../src/hooks/useDictCache').fetchAllDictEntries
   const filterDayjs: typeof import('../src/components/common/Dates/utils/helper').filterDayjs
   const filterEmptyStr: typeof import('../src/components/common/Form/utils/helper').filterEmptyStr
   const filterFormItem: typeof import('../src/components/common/Form/utils/helper').filterFormItem
   const filterTableColumns: typeof import('../src/components/Table/utils/helper').filterTableColumns
   const forwardRef: typeof import('react').forwardRef
+  const getAccessStatic: typeof import('../src/hooks/useAccess').getAccessStatic
   const getComponent: typeof import('../src/components/common/Form/utils/componentMap').getComponent
+  const getDictEntriesByTypeCode: typeof import('../src/hooks/useDictCache').getDictEntriesByTypeCode
+  const getDictEntriesOptionsByTypeCode: typeof import('../src/hooks/useDictCache').getDictEntriesOptionsByTypeCode
+  const getDictEntryLabel: typeof import('../src/hooks/useDictCache').getDictEntryLabel
+  const getDictEntryLabelByValue: typeof import('../src/hooks/useDictCache').getDictEntryLabelByValue
+  const getDictTypes: typeof import('../src/hooks/useDictCache').getDictTypes
   const getTableHeight: typeof import('../src/components/Table/utils/helper').getTableHeight
   const handleRowHeight: typeof import('../src/components/Table/utils/helper').handleRowHeight
   const handleValuePropName: typeof import('../src/components/common/Form/utils/helper').handleValuePropName
@@ -108,11 +117,16 @@ declare global {
   const memo: typeof import('react').memo
   const monacoLoader: typeof import('../src/components/common/Editor/src/monaco-loader').default
   const reducer: typeof import('../src/components/Table/utils/reducer').reducer
+  const resetDictCache: typeof import('../src/hooks/useDictCache').resetDictCache
+  const startRefreshTimer: typeof import('../src/hooks/useTokenRefresh').startRefreshTimer
   const startTransition: typeof import('react').startTransition
+  const stopRefreshTimer: typeof import('../src/hooks/useTokenRefresh').stopRefreshTimer
   const string2Dayjs: typeof import('../src/components/common/Dates/utils/helper').string2Dayjs
   const stringRang2DayjsRang: typeof import('../src/components/common/Dates/utils/helper').stringRang2DayjsRang
   const use: typeof import('react').use
+  const useAccess: typeof import('../src/hooks/useAccess').useAccess
   const useActionState: typeof import('react').useActionState
+  const useAuth: typeof import('../src/hooks/useAuth').useAuth
   const useAuthStore: typeof import('../src/stores/auth').useAuthStore
   const useAutoTableHeight: typeof import('../src/hooks/useTableScrollHeight').useAutoTableHeight
   const useCallback: typeof import('react').useCallback

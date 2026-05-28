@@ -107,8 +107,7 @@ watch(
   }
 );
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:user",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -263,14 +262,14 @@ const pageConfig: ProPageConfig = {
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "detail", text: $t("common.button.detail") },
-          { name: "edit", text: $t("common.button.edit") },
-          { name: "delete", text: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "detail", label: $t("common.button.detail") },
+          { name: "edit", label: $t("common.button.edit") },
+          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
         ],
       },
     ],
   },
-};
+}));
 
 function handleAdd() {
   drawerRef.value?.open({ create: true });

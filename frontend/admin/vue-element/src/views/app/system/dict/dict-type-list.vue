@@ -38,8 +38,7 @@ const dictViewStore = useDictViewStore();
 const pageRef = ref();
 const drawerRef = ref();
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:dict_type",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -92,13 +91,13 @@ const pageConfig: ProPageConfig = {
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", text: $t("common.button.edit") },
-          { name: "delete", text: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit") },
+          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
         ],
       },
     ],
   },
-};
+}));
 
 function handleAdd() {
   drawerRef.value?.open({ create: true });

@@ -8,7 +8,7 @@ import type {
   permissionservicev1_DeletePermissionGroupRequest,
   permissionservicev1_GetPermissionGroupRequest,
   permissionservicev1_ListPermissionGroupResponse,
-  permissionservicev1_PermissionGroup,
+  permissionservicev1_PermissionGroup as PermissionGroup,
 } from "@/api/generated/admin/service/v1";
 import { makeUpdateMask, type PaginationQuery } from "@/core/transport/rest";
 import {
@@ -19,6 +19,9 @@ import {
   deletePermissionGroup,
 } from "@/api/service/permission-group";
 import { queryClient } from "@/plugins/vue-query";
+import { i18n } from "@/i18n";
+
+const t = i18n.global.t;
 
 // ==============================
 // 权限组管理
@@ -45,7 +48,7 @@ export async function fetchListPermissionGroups(params: PaginationQuery) {
 
 export function useGetPermissionGroup(
   req: permissionservicev1_GetPermissionGroupRequest,
-  options?: UseQueryOptions<permissionservicev1_PermissionGroup, Error>
+  options?: UseQueryOptions<PermissionGroup, Error>
 ) {
   return useQuery({
     queryKey: ["getPermissionGroup", req],
@@ -60,7 +63,7 @@ export function useCreatePermissionGroup(
   return useMutation({
     mutationFn: (values) =>
       createPermissionGroup({
-        data: { ...values } as permissionservicev1_PermissionGroup,
+        data: { ...values } as PermissionGroup,
       }),
     ...options,
   });
@@ -87,4 +90,48 @@ export function useDeletePermissionGroup(
     mutationFn: (req) => deletePermissionGroup(req),
     ...options,
   });
+}
+
+// ==============================
+// 权限分组枚举与工具函数
+// ==============================
+
+export function travelPermissionGroupChild(
+  nodes: PermissionGroup[] | undefined,
+  parent: PermissionGroup
+): boolean {
+  if (nodes === undefined) return false;
+  if (parent.parentId === 0 || parent.parentId === undefined) {
+    if (parent?.name) parent.name = t(parent?.name ?? "");
+    nodes.push(parent);
+    return true;
+  }
+  for (const node of nodes) {
+    if (node === undefined) continue;
+    if (node.id === parent.parentId) {
+      if (parent?.name) parent.name = t(parent?.name ?? "");
+      if (node.children !== undefined) node.children.push(parent);
+      return true;
+    }
+    if (travelPermissionGroupChild(node.children, parent)) return true;
+  }
+  return false;
+}
+
+export function buildPermissionGroupTree(groups: PermissionGroup[]): PermissionGroup[] {
+  const tree: PermissionGroup[] = [];
+  for (const group of groups) {
+    if (!group) continue;
+    if (group.parentId !== 0 && group.parentId !== undefined) continue;
+    if (group?.name) group.name = t(group?.name ?? "");
+    tree.push(group);
+  }
+  for (const group of groups) {
+    if (!group) continue;
+    if (group.parentId === 0 || group.parentId === undefined) continue;
+    if (travelPermissionGroupChild(tree, group)) continue;
+    if (group?.name) group.name = t(group?.name ?? "");
+    tree.push(group);
+  }
+  return tree;
 }
