@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package conf.v1;
+
+option go_package = "go-wind-admin/api/gen/go/oss_config/v1;ossconfig";
+
+// OSS 供应商类型枚举
+enum OssProviderType {
+  OSS_PROVIDER_MINIO   = 0;  // MinIO
+  OSS_PROVIDER_ALIYUN  = 1;  // 阿里云 OSS
+  OSS_PROVIDER_TENCENT = 2;  // 腾讯云 COS
+  OSS_PROVIDER_QINIU   = 3;  // 七牛云 Kodo
+  OSS_PROVIDER_HUAWEI  = 4;  // 华为云 OBS
+  OSS_PROVIDER_BAIDU   = 5;  // 百度云 BOS
+  OSS_PROVIDER_AWS     = 6;  // 亚马逊云 S3
+  OSS_PROVIDER_GOOGLE  = 7;  // 谷歌云 GCS
+  OSS_PROVIDER_AZURE   = 8;  // 微软云 Azure Blob
+}
+
+// S3 兼容配置（适用于 MinIO、阿里云、腾讯云、七牛云、华为云、百度云、AWS 等兼容 S3 协议的供应商）
+message S3CompatibleConfig {
+  string endpoint       = 1;  // 服务端点地址（如 oss-cn-hangzhou.aliyuncs.com）
+  string access_key     = 2;  // 访问密钥 (AccessKey ID)
+  string secret_key     = 3;  // 密钥 (AccessKey Secret)
+  string token          = 4;  // 临时令牌 (STS Token，可选)
+  bool   use_ssl        = 5;  // 是否启用 SSL/TLS
+  string region         = 6;  // 地域标识（如 cn-hangzhou、ap-guangzhou，部分供应商可选）
+  string upload_host    = 7;  // 上传链接的主机名（用于替换预签名 URL 中的 Host）
+  string download_host  = 8;  // 下载链接的主机名（用于替换预签名 URL 中的 Host）
+  string bucket         = 9;  // 默认存储桶名称（可选，不填则按文件类型自动分桶）
+}
+
+// 多供应商 OSS 扩展配置
+// 通过 provider 字段选择活跃的供应商，对应子配置将用于初始化客户端。
+message OssProviderConfig {
+  OssProviderType provider = 1; // 当前活跃的供应商类型
+
+  S3CompatibleConfig minio   = 2;  // MinIO 配置
+  S3CompatibleConfig aliyun  = 3;  // 阿里云 OSS 配置
+  S3CompatibleConfig tencent = 4;  // 腾讯云 COS 配置
+  S3CompatibleConfig qiniu   = 5;  // 七牛云 Kodo 配置
+  S3CompatibleConfig huawei  = 6;  // 华为云 OBS 配置
+  S3CompatibleConfig baidu   = 7;  // 百度云 BOS 配置
+  S3CompatibleConfig aws     = 8;  // 亚马逊云 S3 配置
+  S3CompatibleConfig google  = 9;  // 谷歌云 GCS 配置
+  S3CompatibleConfig azure   = 10; // 微软云 Azure Blob 配置
+}
