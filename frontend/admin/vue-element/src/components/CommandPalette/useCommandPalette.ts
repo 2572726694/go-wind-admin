@@ -33,7 +33,7 @@ export function useCommandPalette() {
   const history = ref<SearchItem[]>([]);
 
   // 排除的路由
-  const excludedPaths = ["/redirect", "/login", "/401", "/404"];
+  const excludedPaths = ["/login", "/401", "/404"];
 
   // ============================================
   // 弹窗控制

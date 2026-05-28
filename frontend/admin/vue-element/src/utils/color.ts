@@ -36,3 +36,41 @@ export function hexToRgb(hex: string): [number, number, number] {
 export function rgbToHex(r: number, g: number, b: number): string {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
+
+/**
+ * 将 HSL 颜色转换为十六进制格式
+ */
+export function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color);
+  };
+  return rgbToHex(f(0), f(8), f(4));
+}
+
+/**
+ * 将任意 CSS 颜色格式转换为十六进制格式
+ * 支持: #hex, hsl(), rgb()
+ */
+export function toHex(color: string): string {
+  if (!color) return color;
+  // 已经是十六进制
+  if (color.startsWith("#")) return color;
+  // HSL 格式: hsl(h, s%, l%) 或 hsl(h s% l%)
+  const hslMatch = color.match(
+    /hsl\(\s*(\d+(?:\.\d+)?)\s*,?\s*(\d+(?:\.\d+)?)%\s*,?\s*(\d+(?:\.\d+)?)%\s*\)/,
+  );
+  if (hslMatch) {
+    return hslToHex(Number(hslMatch[1]), Number(hslMatch[2]), Number(hslMatch[3]));
+  }
+  // RGB 格式: rgb(r, g, b) 或 rgb(r g b)
+  const rgbMatch = color.match(/rgb\(\s*(\d+)\s*,?\s*(\d+)\s*,?\s*(\d+)\s*\)/);
+  if (rgbMatch) {
+    return rgbToHex(Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3]));
+  }
+  return color;
+}

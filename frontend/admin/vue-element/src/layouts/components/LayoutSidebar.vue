@@ -3,12 +3,13 @@
   <el-menu
     ref="menuRef"
     :default-active="activeMenuPath"
+    :class="[`nav-style--${navigationStyle}`]"
     :collapse="sidebarCollapsed"
     :background-color="menuThemeProps.backgroundColor"
     :text-color="menuThemeProps.textColor"
     :active-text-color="menuThemeProps.activeTextColor"
     :popper-effect="theme"
-    :unique-opened="false"
+    :unique-opened="navigationPreferences.accordion"
     :collapse-transition="false"
     :mode="menuMode"
     @open="onMenuOpen"
@@ -31,6 +32,7 @@ import type { MenuInstance } from "element-plus";
 import type { RouteRecordRaw } from "vue-router";
 
 import { usePreferences } from "@/core/preferences";
+import { preferences } from "@/core/preferences";
 import { isExternal } from "@/utils";
 
 import LayoutSidebarItem from "./LayoutSidebarItem.vue";
@@ -55,19 +57,30 @@ const props = defineProps({
 
 const menuRef = ref<MenuInstance>();
 const currentRoute = useRoute();
-const { sidebarCollapsed, theme } = usePreferences();
+const { sidebarCollapsed, theme, navigationPreferences } = usePreferences();
+
+// 菜单风格类型
+const navigationStyle = computed(() => navigationPreferences.value.styleType);
 
 // 存储已展开的菜单项索引
 const expandedMenuIndexes = ref<string[]>([]);
 
 // 菜单主题属性
+// 深色主题或半深色侧边栏模式下，使用深色菜单配色
+const useDarkMenuColors = computed(() => {
+  if (theme.value === "dark") return true;
+  // 浅色主题下 semiDarkSidebar 开启时也使用深色配色
+  if (preferences.theme.semiDarkSidebar) return true;
+  return false;
+});
 const menuThemeProps = computed(() => {
-  const isDarkOrClassicBlue = theme.value === "dark";
-
+  if (!useDarkMenuColors.value) {
+    return { backgroundColor: undefined, textColor: undefined, activeTextColor: undefined };
+  }
   return {
-    backgroundColor: isDarkOrClassicBlue ? variables["menu-background"] : undefined,
-    textColor: isDarkOrClassicBlue ? variables["menu-text"] : undefined,
-    activeTextColor: isDarkOrClassicBlue ? variables["menu-active-text"] : undefined,
+    backgroundColor: variables["menu-background"],
+    textColor: variables["menu-text"],
+    activeTextColor: variables["menu-active-text"],
   };
 });
 
@@ -249,7 +262,7 @@ onMounted(() => {
     .el-sub-menu__title {
       height: 44px !important;
       line-height: 44px !important;
-      padding: 0 16px !important;  // 减少左右内边距
+      padding: 0 16px !important; // 减少左右内边距
       margin: 0 !important;
     }
 
@@ -272,6 +285,23 @@ onMounted(() => {
       padding-left: 48px !important;
     }
 
+    // ============================================
+    // navigation.styleType: rounded 风格
+    // 激活菜单项带圆角背景色
+    // ============================================
+    &.nav-style--rounded {
+      .el-menu-item,
+      .el-sub-menu__title {
+        margin: 0 8px !important;
+        border-radius: 6px;
+      }
+
+      .el-menu-item.is-active {
+        background-color: var(--el-color-primary) !important;
+        color: #fff !important;
+      }
+    }
+
     // 暗黑模式配色优化
     html.dark & {
       // 普通菜单文字
@@ -290,6 +320,12 @@ onMounted(() => {
       .el-menu-item:hover,
       .el-sub-menu__title:hover {
         background-color: var(--menu-hover) !important;
+      }
+
+      // rounded 风格暗黑模式
+      &.nav-style--rounded .el-menu-item.is-active {
+        background-color: var(--el-color-primary) !important;
+        color: #fff !important;
       }
     }
   }

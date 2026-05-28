@@ -1,6 +1,6 @@
 <template>
-  <section class="app-main" :style="{ height: appMainHeight }">
-    <router-view>
+  <section class="app-main" :class="mainClass" :style="{ height: appMainHeight }">
+    <router-view v-if="!isRefreshing">
       <template #default="{ Component, route }">
         <transition :name="transitionName" mode="out-in">
           <keep-alive :include="cachedViews">
@@ -27,8 +27,18 @@ import Error404 from "@/views/core/error/404.vue";
 const { cachedViews } = toRefs(useTagsViewStore());
 const { tabbarPreferences } = usePreferences();
 
+// 注入刷新状态
+const isRefreshing = inject<Ref<boolean>>("contentRefreshing", ref(false));
+
 // 当前组件
 const wrapperMap = new Map<string, Component>();
+
+// 刷新时清理 wrapperMap，确保组件完全重建
+watch(isRefreshing, (val) => {
+  if (val) {
+    wrapperMap.clear();
+  }
+});
 const currentComponent = (component: Component, route: RouteLocationNormalized) => {
   if (!component) return;
 
@@ -71,7 +81,16 @@ const appMainHeight = computed(() => {
 
 // 页面切换动画名称
 const transitionName = computed(() => {
+  if (!preferences.transition.enable) return "";
   return preferences.transition.name ?? "";
+});
+
+// 根据 contentCompact 设置主容器类名
+const mainClass = computed(() => {
+  return {
+    "app-main--compact": preferences.app.contentCompact === "compact",
+    "app-main--wide": preferences.app.contentCompact === "wide",
+  };
 });
 </script>
 
@@ -79,14 +98,32 @@ const transitionName = computed(() => {
 .app-main {
   position: relative;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   background-color: var(--el-bg-color-page);
   width: 100%;
   min-width: 0;
+}
 
+// 紧凑模式：限制最大宽度并居中
+.app-main--compact {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// 宽屏模式：占满整个宽度
+.app-main--wide {
+  max-width: 100%;
+}
+</style>
+
+<style lang="scss">
+/* 页面过渡动画 - 不能使用 scoped，否则类名无法应用到 transition 子元素 */
+.app-main {
   /* fade */
   .fade-enter-active,
   .fade-leave-active {
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.2s ease;
   }
   .fade-enter-from,
   .fade-leave-to {
@@ -96,29 +133,49 @@ const transitionName = computed(() => {
   /* fade-slide */
   .fade-slide-leave-active,
   .fade-slide-enter-active {
-    transition: all 0.3s;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
   }
   .fade-slide-enter-from {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateX(-10px);
   }
   .fade-slide-leave-to {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(10px);
   }
 
-  /* fade-scale */
-  .fade-scale-leave-active,
-  .fade-scale-enter-active {
-    transition: all 0.28s;
+  /* fade-down */
+  .fade-down-leave-active,
+  .fade-down-enter-active {
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
   }
-  .fade-scale-enter-from {
+  .fade-down-enter-from {
     opacity: 0;
-    transform: scale(1.2);
+    transform: translateY(-10px);
   }
-  .fade-scale-leave-to {
+  .fade-down-leave-to {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translateY(10px);
+  }
+
+  /* fade-up */
+  .fade-up-leave-active,
+  .fade-up-enter-active {
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  .fade-up-enter-from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .fade-up-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 }
 </style>

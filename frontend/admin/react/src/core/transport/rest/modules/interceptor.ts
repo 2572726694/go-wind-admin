@@ -1,9 +1,6 @@
-import type {AxiosInstance, AxiosResponse} from 'axios';
+import type { AxiosInstance, AxiosResponse } from 'axios';
 
-import type {
-  RequestInterceptorConfig,
-  ResponseInterceptorConfig,
-} from '../types';
+import type { RequestInterceptorConfig, ResponseInterceptorConfig } from '../types';
 
 const defaultRequestInterceptorConfig: RequestInterceptorConfig = {
   fulfilled: (response) => response,
@@ -23,18 +20,18 @@ class InterceptorManager {
   }
 
   addRequestInterceptor({
-                          fulfilled,
-                          rejected,
-                        }: RequestInterceptorConfig = defaultRequestInterceptorConfig) {
+    fulfilled,
+    rejected,
+  }: RequestInterceptorConfig = defaultRequestInterceptorConfig) {
     this.axiosInstance.interceptors.request.use(fulfilled, rejected);
   }
 
   addResponseInterceptor<T = any>({
-                                    fulfilled,
-                                    rejected,
-                                  }: ResponseInterceptorConfig<T> = defaultResponseInterceptorConfig) {
+    fulfilled,
+    rejected,
+  }: ResponseInterceptorConfig<T> = defaultResponseInterceptorConfig) {
     this.axiosInstance.interceptors.response.use(fulfilled, rejected);
   }
 }
 
-export {InterceptorManager};
+export { InterceptorManager };

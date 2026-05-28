@@ -1,3 +1,4 @@
+import { computed } from "vue";
 import {
   useMutation,
   type UseMutationOptions,
@@ -9,6 +10,7 @@ import type {
   taskservicev1_GetTaskRequest,
   taskservicev1_ListTaskResponse,
   taskservicev1_Task,
+  taskservicev1_Task_Type as Task_Type,
 } from "@/api/generated/admin/service/v1";
 import { makeUpdateMask, type PaginationQuery } from "@/core/transport/rest";
 import {
@@ -24,6 +26,9 @@ import {
   restartAllTasks,
 } from "@/api/service/task";
 import { queryClient } from "@/plugins/vue-query";
+import { i18n } from "@/i18n";
+
+const t = i18n.global.t;
 
 // ==============================
 // 任务管理
@@ -134,4 +139,33 @@ export function useRestartAllTasks(options?: UseMutationOptions<{}, Error, void>
     mutationFn: () => restartAllTasks(),
     ...options,
   });
+}
+
+// ==============================
+// 任务枚举与工具函数
+// ==============================
+
+export const taskTypeList = computed(() => [
+  { value: "PERIODIC", label: t("enum.task.type.Periodic") },
+  { value: "DELAY", label: t("enum.task.type.Delay") },
+  { value: "WAIT_RESULT", label: t("enum.task.type.WaitResult") },
+]);
+
+export function taskTypeToName(taskType: Task_Type) {
+  const values = taskTypeList.value;
+  const matchedItem = values.find((item) => item.value === taskType);
+  return matchedItem ? matchedItem.label : "";
+}
+
+export function taskTypeToColor(taskType: Task_Type) {
+  switch (taskType) {
+    case "DELAY":
+      return "blue";
+    case "PERIODIC":
+      return "orange";
+    case "WAIT_RESULT":
+      return "purple";
+    default:
+      return "gray";
+  }
 }

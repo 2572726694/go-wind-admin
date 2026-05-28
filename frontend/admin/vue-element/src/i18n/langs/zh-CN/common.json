@@ -127,7 +127,36 @@
     "logoutConfirmTitle": "提示",
     "logoutConfirmMessage": "确定注销并退出系统吗？"
   },
+  "breadcrumb": {
+    "home": "首页"
+  },
   "fallback": {
+    "unauthorized": "未授权",
+    "unauthorizedDesc": "您没有权限访问此页面，请登录后再试。",
+    "forbidden": "禁止访问",
+    "forbiddenDesc": "您没有权限访问此资源。",
+    "pageNotFound": "页面未找到",
+    "pageNotFoundDesc": "抱歉，您访问的页面不存在。",
+    "internalError": "服务器错误",
+    "internalErrorDesc": "服务器发生内部错误，请稍后重试。",
+    "comingSoon": "即将推出",
+    "offlineError": "网络离线",
+    "offlineErrorDesc": "网络连接已断开，请检查您的网络设置。",
+    "errorFallback": {
+      "title": "页面渲染异常",
+      "subTitle": "组件加载过程中遇到意外错误，已自动拦截以防止应用崩溃。您可以尝试重试或返回首页。",
+      "retry": "重试加载",
+      "backToHome": "返回首页",
+      "refreshPage": "刷新页面",
+      "errorDetails": "错误详情（仅开发环境可见）",
+      "copy": "复制",
+      "copied": "已复制",
+      "copySuccess": "错误信息已复制到剪贴板",
+      "copyFailed": "复制失败，请手动选择文本复制",
+      "errorMessage": "错误信息：",
+      "callStack": "调用堆栈：",
+      "componentStack": "组件堆栈："
+    },
     "http": {
       "networkError": "网络异常，请稍后重试",
       "requestTimeout": "请求超时，请稍后重试",
@@ -160,6 +189,32 @@
     "lastWeek": "上周",
     "thisMonth": "本月",
     "lastMonth": "上月"
+  },
+  "request": {
+    "error": {
+      "networkError": "网络异常，请稍后重试",
+      "timeout": "请求超时，请稍后重试",
+      "unknownError": "未知错误，请稍后重试"
+    },
+    "reason": {
+      "INVALID_PASSWORD": "密码错误",
+      "USER_NOT_FOUND": "用户不存在",
+      "USER_DISABLED": "用户已被禁用",
+      "USER_LOCKED": "用户已被锁定",
+      "TOKEN_EXPIRED": "登录已过期，请重新登录",
+      "UNAUTHORIZED": "未授权，请重新登录",
+      "FORBIDDEN": "没有操作权限",
+      "DUPLICATE_ENTRY": "数据已存在",
+      "VALIDATION_FAILED": "数据校验失败",
+      "INTERNAL_ERROR": "服务器内部错误"
+    },
+    "status": {
+      "400": "请求错误",
+      "401": "未授权，请重新登录",
+      "403": "拒绝访问",
+      "404": "请求的资源不存在",
+      "500": "服务器内部错误"
+    }
   },
   "switch": {
     "active": "开启",

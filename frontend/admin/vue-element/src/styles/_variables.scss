@@ -31,6 +31,10 @@ $tags-view-height: 34px;
   --sidebar-logo-background: #FFFFFF;  // Logo 区背景（和侧边栏完全一致）
   --sidebar-logo-text-color: #1D2129;  // Logo 文字
   --sidebar-logo-border-color: #E5E6EB;  // 分割线颜色
+
+  // 顶栏（Navbar / Header）
+  --navbar-background: #FFFFFF;
+  --navbar-border-color: #E5E6EB;
 }
 
 // SCSS 变量映射（供组件使用）
@@ -65,6 +69,8 @@ html.dark {
   --sidebar-logo-background: #0D0F14;  // Logo 区背景（和侧边栏完全一致）
   --sidebar-logo-text-color: #E5EAF3;  // Logo 文字
   --sidebar-logo-border-color: #23272F;  // 分割线颜色
+  --navbar-background: #0D0F14;
+  --navbar-border-color: #23272F;
 
   // Element Plus 表格选中行背景色
   .el-table {
@@ -75,4 +81,31 @@ html.dark {
 // 色弱模式
 html.color-weak {
   filter: invert(80%);
+}
+
+// ============================================
+// 4. 半深色模式（浅色主题下）
+// ============================================
+
+// 半深色侧边栏（浅色主题下启用）
+// 仅覆盖侧边栏相关变量，不影响顶栏
+html.semi-dark-sidebar:not(.dark) {
+  --menu-background: #1d1e1f;
+  --menu-text: #e0e0e0;
+  --menu-active-text: var(--el-menu-active-color);
+  --menu-hover: #2a2b2c;
+  --sidebar-logo-background: #1d1e1f;
+  --sidebar-logo-text-color: #e0e0e0;
+  --sidebar-logo-border-color: #333435;
+  // 注意：不覆盖 --navbar-* 变量，保持顶栏为浅色
+}
+
+// 半深色顶栏（浅色主题下启用）
+// 仅覆盖顶栏相关变量，不影响侧边栏
+html.semi-dark-header:not(.dark) {
+  --navbar-background: #1d1e1f;
+  --navbar-border-color: #333435;
+  --sidebar-logo-background: #1d1e1f;
+  --sidebar-logo-text-color: #e0e0e0;
+  --sidebar-logo-border-color: #333435;
 }

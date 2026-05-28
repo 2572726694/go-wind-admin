@@ -1,13 +1,19 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, CreateAxiosDefaults } from "axios";
 
 import axios from "axios";
+import { defu as merge } from "defu";
 
-import { merge, bindMethods } from "@/utils";
+import { bindMethods } from "./utils";
 
 import { FileDownloader } from "./modules/downloader";
 import { InterceptorManager } from "./modules/interceptor";
 import { FileUploader } from "./modules/uploader";
-import type { RequestClientOptions } from "./types";
+import {
+  authenticateResponseInterceptor,
+  errorMessageResponseInterceptor,
+} from "./preset-interceptors";
+import { defaultIdGenerator, getDefaultErrorMsg } from "./utils";
+import type { RequestClientCallbacks, RequestClientOptions, RequestContentType } from "./types";
 
 class RequestClient {
   private readonly instance: AxiosInstance;
@@ -22,17 +28,39 @@ class RequestClient {
   public refreshTokenQueue: ((token: string) => void)[] = [];
   public upload: FileUploader["upload"];
 
+  // ==========================
+  // 静态单例管理
+  // ==========================
+  private static _instance: RequestClient | null = null;
+
   /**
-   * 构造函数，用于创建Axios实例
-   * @param options - Axios请求配置，可选
+   * 初始化全局单例（在 bootstrap 时调用一次）
    */
-  constructor(options: RequestClientOptions = {}) {
+  static init(baseURL: string, callbacks: RequestClientCallbacks) {
+    RequestClient._instance = new RequestClient({ baseURL }, callbacks);
+  }
+
+  /**
+   * 获取全局单例
+   */
+  static getInstance(): RequestClient {
+    if (!RequestClient._instance) {
+      throw new Error("RequestClient not initialized. Call RequestClient.init() during bootstrap.");
+    }
+    return RequestClient._instance;
+  }
+
+  /**
+   * 构造函数，创建 Axios 实例并注册拦截器
+   * @param options - Axios 请求配置
+   * @param callbacks - 业务回调接口（token、认证、错误处理），由应用层注入
+   */
+  constructor(options: RequestClientOptions = {}, callbacks?: RequestClientCallbacks) {
     // 合并默认配置和传入的配置
-    const defaultConfig: CreateAxiosDefaults = {
+    const defaultConfig: CreateAxiosDefaults<RequestContentType> = {
       headers: {
-        "Content-Type": "application/json;charset=utf-8",
+        "Content-Type": "application/json;charset=utf-8" as RequestContentType,
       },
-      // 默认超时时间
       timeout: 10_000,
     };
     const { ...axiosConfig } = options;
@@ -53,33 +81,160 @@ class RequestClient {
     // 实例化文件下载器
     const fileDownloader = new FileDownloader(this);
     this.download = fileDownloader.download.bind(fileDownloader);
+
+    // ==========================
+    // 注册内置拦截器
+    // ==========================
+    if (callbacks) {
+      this.setupInterceptors(callbacks);
+    }
+  }
+
+  /**
+   * 格式化令牌
+   */
+  private formatToken(token: null | string) {
+    return token ? `Bearer ${token}` : null;
+  }
+
+  /**
+   * 注册所有内置拦截器
+   */
+  private setupInterceptors(callbacks: RequestClientCallbacks) {
+    this.useTokenInterceptor(callbacks);
+    this.useRequestIdInterceptor();
+    this.useLocaleInterceptor(callbacks);
+    this.useResponseDataInterceptor();
+    this.useAuthInterceptor(callbacks);
+    this.useErrorMessageInterceptor(callbacks);
+  }
+
+  /**
+   * 请求拦截器：注入 Authorization Token
+   */
+  private useTokenInterceptor(callbacks: RequestClientCallbacks) {
+    this.addRequestInterceptor({
+      fulfilled: (config) => {
+        if (callbacks.getToken) {
+          const token = callbacks.getToken();
+          config.headers.Authorization = this.formatToken(token);
+        }
+        return config as never;
+      },
+    });
+  }
+
+  /**
+   * 请求拦截器：注入 X-Request-ID 和 XMLHttpRequest 标识
+   */
+  private useRequestIdInterceptor() {
+    this.addRequestInterceptor({
+      fulfilled: (config) => {
+        const requestId = config.headers["X-Request-ID"] || defaultIdGenerator();
+        (config as any)._requestId = requestId;
+        config.headers["X-Request-ID"] = requestId;
+        config.headers["X-Requested-With"] = "XMLHttpRequest";
+        return config as never;
+      },
+    });
+  }
+
+  /**
+   * 请求拦截器：注入 Accept-Language
+   */
+  private useLocaleInterceptor(callbacks: RequestClientCallbacks) {
+    this.addRequestInterceptor({
+      fulfilled: (config) => {
+        if (callbacks.getLocale) {
+          config.headers["Accept-Language"] = callbacks.getLocale();
+        }
+        return config as never;
+      },
+    });
+  }
+
+  /**
+   * 响应拦截器：解构响应数据（只返回 data 部分）
+   */
+  private useResponseDataInterceptor() {
+    this.addResponseInterceptor({
+      fulfilled: (response) => {
+        const { data: responseData, status } = response;
+
+        if (status >= 200 && status < 400) {
+          return responseData;
+        }
+
+        throw Object.assign({}, responseData, { response });
+      },
+    });
+  }
+
+  /**
+   * 401 认证拦截器：自动刷新 Token 或跳转登录页
+   */
+  private useAuthInterceptor(callbacks: RequestClientCallbacks) {
+    this.addResponseInterceptor(
+      authenticateResponseInterceptor({
+        client: this,
+        doReAuthenticate: async () => {
+          console.warn("Token expired, redirecting to login...");
+          if (callbacks.onReAuthenticate) {
+            await callbacks.onReAuthenticate(true);
+          } else {
+            console.error(
+              "onReAuthenticate callback not set. Call RequestClient.init() during bootstrap."
+            );
+          }
+        },
+        doRefreshToken: async () => {
+          if (callbacks.refreshToken) {
+            return await callbacks.refreshToken();
+          }
+          return "";
+        },
+        enableRefreshToken: true,
+        formatToken: this.formatToken.bind(this),
+      })
+    );
+  }
+
+  /**
+   * 统一错误消息拦截器：提取错误文本并回调
+   */
+  private useErrorMessageInterceptor(callbacks: RequestClientCallbacks) {
+    this.addResponseInterceptor(
+      errorMessageResponseInterceptor((msg: string) => {
+        callbacks.onError?.(msg);
+      }, callbacks.getErrorMsg ?? getDefaultErrorMsg)
+    );
   }
 
   /**
    * DELETE请求方法
    */
-  public delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public delete<T = never>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>(url, { ...config, method: "DELETE" });
   }
 
   /**
    * GET请求方法
    */
-  public get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public get<T = never>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>(url, { ...config, method: "GET" });
   }
 
   /**
    * POST请求方法
    */
-  public post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  public post<T = never>(url: string, data?: never, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>(url, { ...config, data, method: "POST" });
   }
 
   /**
    * PUT请求方法
    */
-  public put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  public put<T = never>(url: string, data?: never, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>(url, { ...config, data, method: "PUT" });
   }
 
@@ -93,7 +248,8 @@ class RequestClient {
         ...config,
       });
       return response as T;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // @ts-expect-error 忽略类型检查
       throw error.response ? error.response.data : error;
     }
   }

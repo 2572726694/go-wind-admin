@@ -75,8 +75,7 @@ import { $t } from "@/i18n";
 
 const pageRef = ref();
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:login_audit_log",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -232,7 +231,7 @@ const pageConfig: ProPageConfig = {
       { prop: "ipAddress", label: $t("pages.login_audit_log.ipAddress"), width: 140 },
     ],
   },
-};
+}));
 </script>
 
 <style lang="scss" scoped>

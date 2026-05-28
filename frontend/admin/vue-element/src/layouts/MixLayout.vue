@@ -7,8 +7,8 @@
           <LayoutLogo :collapse="isLogoCollapsed" />
         </div>
 
-        <!-- 顶部菜单 -->
-        <div class="layout__header-menu">
+        <!-- 顶部菜单（仅 split 模式下显示） -->
+        <div v-if="isSplit" class="layout__header-menu">
           <el-menu
             mode="horizontal"
             :default-active="activeTopMenuPath"
@@ -38,19 +38,23 @@
     <!-- 主内容区容器 -->
     <div class="layout__container">
       <!-- 左侧菜单栏 -->
-      <div class="layout__sidebar--left" :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }">
+      <div
+        class="layout__sidebar--left"
+        :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
+        :style="{ width: sidebarActualWidth + 'px' }"
+      >
         <el-scrollbar>
           <el-menu
             :default-active="activeSideMenuPath"
             :collapse="!isSidebarOpen"
             :collapse-transition="false"
-            :unique-opened="false"
+            :unique-opened="accordion"
             :background-color="variables['menu-background']"
             :text-color="variables['menu-text']"
             :active-text-color="variables['menu-active-text']"
           >
             <LayoutSidebarItem
-              v-for="item in sideMenuRoutes"
+              v-for="item in effectiveSideMenuRoutes"
               :key="item.path"
               :item="item"
               :base-path="resolvePath(item.path)"
@@ -58,7 +62,7 @@
           </el-menu>
         </el-scrollbar>
         <div class="layout__sidebar-toggle">
-          <Hamburger :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
+          <LayoutHamburger :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
         </div>
       </div>
 
@@ -80,7 +84,7 @@ import { useLayout } from "./useLayout";
 import { useAccessStore } from "@/stores";
 import { isExternal } from "@/utils";
 import { translateRouteTitle } from "@/i18n";
-import { preferencesManager } from "@/core/preferences";
+import { preferences, preferencesManager, usePreferences } from "@/core/preferences";
 
 import BaseLayout from "./BaseLayout.vue";
 import LayoutLogo from "./components/LayoutLogo.vue";
@@ -88,7 +92,7 @@ import LayoutToolbar from "./components/LayoutToolbar.vue";
 import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebarItem from "./components/LayoutSidebarItem.vue";
-import Hamburger from "@/components/Hamburger/index.vue";
+import LayoutHamburger from "./components/LayoutHamburger.vue";
 import variables from "@/styles/variables.module.scss";
 
 // 菜单图标渲染组件
@@ -120,8 +124,22 @@ const { width } = useWindowSize();
 
 const accessStore = useAccessStore();
 
-const { showTagsView, showLogo, isSidebarOpen, toggleSidebar, sideMenuRoutes, activeTopMenuPath } =
+const { showTagsView, showLogo, isSidebarOpen, toggleSidebar, routes, sideMenuRoutes, activeTopMenuPath } =
   useLayout();
+
+const { navigationPreferences } = usePreferences();
+
+const SIDEBAR_COLLAPSED_WIDTH = 54;
+const sidebarActualWidth = computed(() =>
+  isSidebarOpen.value ? preferences.sidebar.width : SIDEBAR_COLLAPSED_WIDTH,
+);
+const accordion = computed(() => navigationPreferences.value.accordion);
+const isSplit = computed(() => navigationPreferences.value.split);
+
+// 侧边栏菜单数据：split 模式下显示二级菜单，否则显示完整菜单
+const effectiveSideMenuRoutes = computed(() =>
+  isSplit.value ? sideMenuRoutes.value : routes.value,
+);
 
 const isLogoCollapsed = computed(() => width.value < 768);
 
@@ -167,8 +185,14 @@ const activeSideMenuPath = computed(() => {
 // 解析左侧菜单路径
 function resolvePath(routePath: string) {
   if (isExternal(routePath)) return routePath;
-  if (routePath.startsWith("/")) return activeTopMenuPath.value + routePath;
-  return `${activeTopMenuPath.value}/${routePath}`;
+  if (isSplit.value) {
+    // split 模式：基于顶部激活菜单拼接路径
+    if (routePath.startsWith("/")) return activeTopMenuPath.value + routePath;
+    return `${activeTopMenuPath.value}/${routePath}`;
+  }
+  // 非 split 模式：直接使用路由路径
+  if (routePath.startsWith("/")) return routePath;
+  return routePath;
 }
 
 // 顶部菜单点击
@@ -212,8 +236,8 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
     z-index: 999;
     width: 100%;
     height: $navbar-height;
-    background-color: var(--menu-background);
-    border-bottom: 1px solid var(--el-border-color-lighter);
+    background-color: var(--navbar-background);
+    border-bottom: 1px solid var(--navbar-border-color);
 
     &-content {
       display: flex;
@@ -278,13 +302,13 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
 
     .layout__sidebar--left {
       position: relative;
-      width: $sidebar-width;
+      // 宽度由内联 style 控制
       height: 100%;
       background-color: var(--menu-background);
       transition: width 0.28s;
 
       &.layout__sidebar--collapsed {
-        width: $sidebar-width-collapsed !important;
+        // 折叠宽度由内联 style 控制
       }
 
       :deep(.el-scrollbar) {
@@ -334,8 +358,7 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
 
   &.hideSidebar {
     .layout__sidebar--left {
-      width: $sidebar-width !important;
-      transform: translateX(-$sidebar-width);
+      transform: translateX(-100%);
     }
   }
 }

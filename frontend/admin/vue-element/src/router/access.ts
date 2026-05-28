@@ -1,22 +1,23 @@
 import { ElMessage } from "element-plus";
 
-import { createAdminPortalServiceClient } from "@/api/generated/admin/service/v1";
 import { BasicLayout, Layout } from "@/layouts";
-import { requestClientRequestHandler } from "@/core/transport/rest";
-import { generateAccessible } from "@/router/accessible";
+import { generateAccessible } from "@/core/router";
 import { preferences } from "@/core/preferences";
+import { fetchNavigation } from "@/api/composables";
 
 import { i18n } from "@/i18n/setup";
 
 const t = i18n.global.t;
 
-const adminPortalService = createAdminPortalServiceClient(requestClientRequestHandler);
-
 const forbiddenComponent = () => import("@/views/core/error/403.vue");
 
-async function getAllMenusApi(): Promise<RouteRecordStringComponent[]> {
-  const data = (await adminPortalService.GetNavigation({})) ?? [];
-  return <RouteRecordStringComponent[]>data.items ?? [];
+/**
+ * 后端返回的路由数据结构兼容 RouteRecordStringComponent
+ * （path、name、component、children、meta 等字段一致），
+ * 但 TypeScript 类型不匹配，需要通过此函数显式转换。
+ */
+function asRouteRecords(data: Record<string, any>): RouteRecordStringComponent[] {
+  return (data.items ?? []) as RouteRecordStringComponent[];
 }
 
 async function generateAccess(options: GenerateMenuAndRoutesOptions) {
@@ -36,14 +37,13 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         duration: 0,
       });
       try {
-        return await getAllMenusApi();
+        const data = (await fetchNavigation()) ?? {};
+        return asRouteRecords(data);
       } finally {
         loadingMessage.close();
       }
     },
-    // 可以指定没有权限跳转403页面
     forbiddenComponent,
-    // 如果 route.meta.menuVisibleWithForbidden = true
     layoutMap,
     pageMap,
   });

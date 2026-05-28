@@ -44,8 +44,7 @@ const permissionViewStore = usePermissionViewStore();
 const pageRef = ref();
 const drawerRef = ref();
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:permission_group",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     fields: [
@@ -99,12 +98,12 @@ const pageConfig: ProPageConfig = {
     toolbar: [
       {
         name: "expandAll",
-        text: $t("common.tree.expand_all"),
+        label: $t("common.tree.expand_all"),
         attrs: { icon: "SortDown" },
       } as ToolsButton,
       {
         name: "collapseAll",
-        text: $t("common.tree.collapse_all"),
+        label: $t("common.tree.collapse_all"),
         attrs: { icon: "SortUp" },
       } as ToolsButton,
     ],
@@ -147,13 +146,13 @@ const pageConfig: ProPageConfig = {
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", text: $t("common.button.edit") },
-          { name: "delete", text: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit") },
+          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
         ],
       },
     ],
   },
-};
+}));
 
 function handleAdd() {
   drawerRef.value?.open({ create: true });

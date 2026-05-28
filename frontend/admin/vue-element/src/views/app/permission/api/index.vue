@@ -25,8 +25,7 @@ const { mutateAsync: syncApis } = useSyncApisApi();
 const pageRef = ref();
 const drawerRef = ref();
 
-const pageConfig: ProPageConfig = {
-  permPrefix: "sys:api",
+const pageConfig = computed<ProPageConfig>(() => ({
 
   search: {
     grid: true,
@@ -76,7 +75,7 @@ const pageConfig: ProPageConfig = {
     toolbarRight: [
       {
         name: "sync",
-        text: $t("pages.api.button.sync"),
+        label: $t("pages.api.button.sync"),
         attrs: { type: "danger", icon: "refresh" },
       } as ToolsButton,
       "add",
@@ -104,13 +103,13 @@ const pageConfig: ProPageConfig = {
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", text: $t("common.button.edit") },
-          { name: "delete", text: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit") },
+          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
         ],
       },
     ],
   },
-};
+}));
 
 function handleAdd() {
   drawerRef.value?.open();

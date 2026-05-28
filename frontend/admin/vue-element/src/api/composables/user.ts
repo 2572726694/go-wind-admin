@@ -1,3 +1,4 @@
+import { computed } from "vue";
 import {
   useMutation,
   type UseMutationOptions,
@@ -11,6 +12,8 @@ import type {
   identityservicev1_UserExistsRequest,
   identityservicev1_EditUserPasswordRequest,
   identityservicev1_UserExistsResponse,
+  identityservicev1_User_Gender as User_Gender,
+  identityservicev1_User_Status as User_Status,
 } from "@/api/generated/admin/service/v1";
 import { makeUpdateMask, type PaginationQuery } from "@/core/transport/rest";
 import {
@@ -23,6 +26,9 @@ import {
   editUserPassword,
 } from "@/api/service/user";
 import { queryClient } from "@/plugins/vue-query";
+import { i18n } from "@/i18n";
+
+const t = i18n.global.t;
 
 // ==============================
 // 获取用户列表
@@ -141,4 +147,61 @@ export function useEditUserPassword(
   });
 }
 
-// 用户枚举与工具函数已迁移至 _module-enums.ts
+// ==============================
+// 用户枚举与工具函数
+// ==============================
+
+export const userStatusList = computed(() => [
+  { value: "NORMAL", label: t("enum.user.status.NORMAL") },
+  { value: "DISABLED", label: t("enum.user.status.DISABLED") },
+  { value: "PENDING", label: t("enum.user.status.PENDING") },
+  { value: "LOCKED", label: t("enum.user.status.LOCKED") },
+  { value: "EXPIRED", label: t("enum.user.status.EXPIRED") },
+  { value: "CLOSED", label: t("enum.user.status.CLOSED") },
+]);
+
+const USER_STATUS_COLOR_MAP: Record<string, string> = {
+  NORMAL: "#4096FF",
+  DISABLED: "#909399",
+  PENDING: "#FF9A2E",
+  LOCKED: "#F56C6C",
+  TERMINATED: "#F53F3F",
+  EXPIRED: "#C9CDD4",
+  CLOSED: "#86909C",
+  DEFAULT: "#86909C",
+};
+
+export function userStatusToColor(status: User_Status) {
+  return USER_STATUS_COLOR_MAP[status as string] || USER_STATUS_COLOR_MAP.DEFAULT;
+}
+
+export function userStatusToName(status?: User_Status) {
+  const values = userStatusList.value;
+  const matchedItem = values.find((item) => item.value === status);
+  return matchedItem ? matchedItem.label : "";
+}
+
+export const genderList = computed(() => [
+  { value: "SECRET", label: t("enum.gender.SECRET") },
+  { value: "MALE", label: t("enum.gender.MALE") },
+  { value: "FEMALE", label: t("enum.gender.FEMALE") },
+]);
+
+export function genderToName(gender?: User_Gender) {
+  const values = genderList.value;
+  const matchedItem = values.find((item) => item.value === gender);
+  return matchedItem ? matchedItem.label : "";
+}
+
+export function genderToColor(gender?: User_Gender) {
+  switch (gender) {
+    case "FEMALE":
+      return "#F77272";
+    case "MALE":
+      return "#4096FF";
+    case "SECRET":
+      return "#86909C";
+    default:
+      return "#C9CDD4";
+  }
+}

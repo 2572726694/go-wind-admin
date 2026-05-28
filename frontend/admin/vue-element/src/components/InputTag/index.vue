@@ -64,8 +64,7 @@ const showInput = () => {
 
 const handleInputConfirm = () => {
   if (inputValue.value) {
-    const newTags = [...(tags.value || []), inputValue.value];
-    tags.value = newTags;
+    tags.value = [...(tags.value || []), inputValue.value];
   }
   inputVisible.value = false;
   inputValue.value = "";

@@ -1,13 +1,10 @@
 /**
  * API Hooks 索引文件
- * 导出所有业务模块的 hooks
+ * 导出所有业务模块的 hooks 及其枚举工具函数
  */
 
 // 通用枚举与工具函数
-export * from "./_shared";
-
-// 模块专属枚举与工具函数
-export * from "./_module-enums";
+export * from "./shared";
 
 // 认证相关
 export * from "./auth";
@@ -53,6 +50,3 @@ export * from "./policy-evaluation-log";
 
 // 内部消息
 export * from "./internal-message";
-
-// 字典缓存
-export * from "./use-dict-cache";

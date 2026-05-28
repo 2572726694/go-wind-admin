@@ -72,33 +72,35 @@
       </template>
 
       <!-- 操作按钮区域 -->
-      <div :class="actionClass">
-        <ElButton
-          v-if="showSearchButton"
-          type="primary"
-          :icon="Search"
-          :loading="searching"
-          @click="handleSearch"
-        >
-          {{ searchButtonText }}
-        </ElButton>
+      <ElFormItem class="pro-search__actions-wrapper">
+        <div :class="actionClass">
+          <ElButton
+            v-if="showSearchButton"
+            type="primary"
+            :icon="Search"
+            :loading="searching"
+            @click="handleSearch"
+          >
+            {{ searchButtonText || t("common.button.search") }}
+          </ElButton>
 
-        <ElButton v-if="showResetButton" :icon="Refresh" @click="handleReset">
-          {{ resetButtonText }}
-        </ElButton>
+          <ElButton v-if="showResetButton" :icon="Refresh" @click="handleReset">
+            {{ resetButtonText || t("common.button.reset") }}
+          </ElButton>
 
-        <!-- 展开/收起 -->
-        <span
-          v-if="isExpandable && hasHiddenFields"
-          class="pro-search__collapse-btn"
-          @click="toggleExpand"
-        >
-          {{ expanded ? t("common.button.collapse") : t("common.button.expand") }}
-          <ElIcon class="ml-1">
-            <component :is="expanded ? ArrowUp : ArrowDown" />
-          </ElIcon>
-        </span>
-      </div>
+          <!-- 展开/收起 -->
+          <span
+            v-if="isExpandable && hasHiddenFields"
+            class="pro-search__collapse-btn"
+            @click="toggleExpand"
+          >
+            {{ expanded ? t("common.button.collapse") : t("common.button.expand") }}
+            <ElIcon class="ml-1">
+              <component :is="expanded ? ArrowUp : ArrowDown" />
+            </ElIcon>
+          </span>
+        </div>
+      </ElFormItem>
     </ElForm>
   </div>
 </template>
@@ -137,8 +139,8 @@ const props = withDefaults(defineProps<ProSearchConfig<T>>(), {
   showNumber: 3,
   showSearchButton: true,
   showResetButton: true,
-  searchButtonText: "搜索",
-  resetButtonText: "重置",
+  searchButtonText: "",
+  resetButtonText: "",
 });
 
 const emit = defineEmits<ProSearchEmits<T>>();
@@ -313,28 +315,67 @@ defineExpose({
     min-width: 0;
     width: 100%;
   }
+
+  // 按钮区域包装器 - 放在最后一格，靠右对齐
+  :deep(.pro-search__actions-wrapper) {
+    grid-column: -1;
+    justify-self: end;
+    align-self: end;
+  }
 }
 
 // === Inline 布局模式 ===
 .pro-search--inline {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 24px;
+  gap: 16px 24px;
+
+  // 表单项 - 允许自动换行和拉伸
+  :deep(.el-form-item) {
+    flex: 1 1 auto;
+    min-width: 240px;
+    max-width: 100%;
+  }
+
+  // 表单项内容区域
+  :deep(.el-form-item__content) {
+    min-width: 0;
+    width: 100%;
+  }
+
+  // 输入框宽度自适应
+  :deep(.el-input),
+  :deep(.el-select),
+  :deep(.el-cascader),
+  :deep(.el-tree-select),
+  :deep(.el-date-editor) {
+    width: 100%;
+  }
+
+  // 按钮区域包装器 - 保持固定宽度靠右
+  :deep(.pro-search__actions-wrapper) {
+    flex: 0 0 auto !important;
+    margin-left: auto;
+    min-width: fit-content;
+    width: auto;
+
+    // 当空间不足时，按钮区域换到下一行并占满整行
+    @media (max-width: 768px) {
+      margin-left: 0;
+      width: 100%;
+      margin-top: 8px;
+    }
+  }
 }
 
-// === 操作按钮区域 ===
-.pro-search__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-// Grid 模式下按钮靠右对齐
-.pro-search__actions--grid {
-  grid-column: -2 / -1;
-  justify-self: end;
-  align-self: end;
+// 窄屏适配：当容器宽度小于 640px 时，表单项占满整行
+@media (max-width: 640px) {
+  .pro-search--inline {
+    :deep(.el-form-item) {
+      width: 100%;
+      min-width: unset;
+    }
+  }
 }
 
 // === 展开/收起按钮 ===
@@ -346,6 +387,7 @@ defineExpose({
   font-size: 13px;
   user-select: none;
   white-space: nowrap;
+  margin-left: 12px;
 
   &:hover {
     opacity: 0.85;
@@ -356,6 +398,14 @@ defineExpose({
 :deep(.el-form-item) {
   margin-right: 0;
   margin-bottom: 0;
+}
+
+// 表单项标签样式优化
+:deep(.el-form-item__label) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 :deep(.el-input-number .el-input__inner) {

@@ -73,8 +73,6 @@
       "success": "Language switched successfully"
     }
   },
-  "backToHome": "Back to Home",
-  "refresh": "Refresh Page",
   "table": {
     "seq": "Seq",
     "status": "Status",
@@ -129,7 +127,36 @@
     "logoutConfirmTitle": "Notice",
     "logoutConfirmMessage": "Are you sure you want to logout and exit the system?"
   },
+  "breadcrumb": {
+    "home": "Home"
+  },
   "fallback": {
+    "unauthorized": "Unauthorized",
+    "unauthorizedDesc": "You are not authorized to access this page. Please login and try again.",
+    "forbidden": "Forbidden",
+    "forbiddenDesc": "You do not have permission to access this resource.",
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDesc": "Sorry, the page you are looking for does not exist.",
+    "internalError": "Server Error",
+    "internalErrorDesc": "An internal server error occurred. Please try again later.",
+    "comingSoon": "Coming Soon",
+    "offlineError": "Network Offline",
+    "offlineErrorDesc": "Network connection is disconnected. Please check your network settings.",
+    "errorFallback": {
+      "title": "Page Rendering Error",
+      "subTitle": "An unexpected error occurred during component loading and has been intercepted to prevent application crash. You can try reloading or go back to home.",
+      "retry": "Retry Loading",
+      "backToHome": "Back to Home",
+      "refreshPage": "Refresh Page",
+      "errorDetails": "Error Details (visible in development only)",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copySuccess": "Error info copied to clipboard",
+      "copyFailed": "Copy failed, please select text manually",
+      "errorMessage": "Error message:",
+      "callStack": "Call Stack:",
+      "componentStack": "Component Stack:"
+    },
     "http": {
       "networkError": "Network error, please try again later",
       "requestTimeout": "Request timeout, please try again later",
@@ -162,6 +189,32 @@
     "lastWeek": "Last Week",
     "thisMonth": "This Month",
     "lastMonth": "Last Month"
+  },
+  "request": {
+    "error": {
+      "networkError": "Network error, please try again later",
+      "timeout": "Request timeout, please try again later",
+      "unknownError": "Unknown error, please try again later"
+    },
+    "reason": {
+      "INVALID_PASSWORD": "Incorrect password",
+      "USER_NOT_FOUND": "User not found",
+      "USER_DISABLED": "User has been disabled",
+      "USER_LOCKED": "User has been locked",
+      "TOKEN_EXPIRED": "Session expired, please login again",
+      "UNAUTHORIZED": "Unauthorized, please login again",
+      "FORBIDDEN": "Access denied",
+      "DUPLICATE_ENTRY": "Data already exists",
+      "VALIDATION_FAILED": "Validation failed",
+      "INTERNAL_ERROR": "Internal server error"
+    },
+    "status": {
+      "400": "Bad request",
+      "401": "Unauthorized, please login again",
+      "403": "Forbidden",
+      "404": "Resource not found",
+      "500": "Internal server error"
+    }
   },
   "switch": {
     "active": "On",

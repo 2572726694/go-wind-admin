@@ -80,7 +80,7 @@ export function addRecentMenu(path: string, title: string, icon?: string) {
   if (!path || !title) return;
 
   // 过滤掉不需要记录的路径
-  const excludePaths = ["/dashboard", "/redirect", "/404", "/401", "/login", "/"];
+  const excludePaths = ["/dashboard", "/404", "/401", "/login", "/"];
   if (excludePaths.some((p) => path === p || path.startsWith(p + "/"))) return;
 
   // 移除已存在的相同路径

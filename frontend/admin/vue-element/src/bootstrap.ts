@@ -14,6 +14,11 @@ import { setupRouter } from "@/router";
 import { initStores } from "@/stores/setup";
 import { registerGlobComp } from "@/registerGlobComp";
 import { initPreferences } from "@/core/preferences";
+import { RequestClient } from "@/core/transport/rest";
+import { logoutToLoginPage, refreshToken } from "@/composables/use-token-refresh";
+import { useAccessStore } from "@/stores";
+import { createI18nGetErrorMsg } from "@/composables/use-request-error-msg";
+import { i18n } from "@/i18n";
 
 import App from "./App.vue";
 import { setupVueQuery } from "@/plugins/vue-query";
@@ -41,8 +46,20 @@ async function bootstrap(namespace: string) {
   // 注册自定义指令
   setupDirective(app);
 
-  // 配置 pinia-tore
+  // 配置 pinia-store
   await initStores(app, { namespace });
+
+  // 注入 RequestClient 回调（业务层 → 基础设施层）
+  // 必须在 initStores 之后，因为 getToken 依赖 accessStore
+  const accessStore = useAccessStore();
+  RequestClient.init(import.meta.env.VITE_APP_API_URL, {
+    getToken: () => accessStore.accessToken,
+    getLocale: () => i18n.global.locale.value,
+    refreshToken,
+    onReAuthenticate: logoutToLoginPage,
+    onError: (msg) => console.error("[RequestClient]", msg),
+    getErrorMsg: createI18nGetErrorMsg(),
+  });
 
   // 配置路由及路由守卫
   setupRouter(app);

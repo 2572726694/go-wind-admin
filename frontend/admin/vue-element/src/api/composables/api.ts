@@ -13,6 +13,9 @@ import type {
 import { makeUpdateMask, type PaginationQuery } from "@/core/transport/rest";
 import { listApis, getApi, createApi, updateApi, deleteApi, syncApis } from "@/api/service/api";
 import { queryClient } from "@/plugins/vue-query";
+import { i18n } from "@/i18n";
+
+const t = i18n.global.t;
 
 // ==============================
 // API 管理
@@ -85,4 +88,34 @@ export function useSyncApisApi(options?: UseMutationOptions<{}, Error>) {
     mutationFn: () => syncApis(),
     ...options,
   });
+}
+
+// ==============================
+// API 枚举与工具函数
+// ==============================
+
+export function convertApiToTree(apis: any[]): any[] {
+  const tree: any[] = [];
+  for (const api of apis) {
+    if (!api) continue;
+    if (api.parentId !== 0 && api.parentId !== undefined) continue;
+    tree.push(api);
+  }
+  for (const api of apis) {
+    if (!api) continue;
+    if (api.parentId === 0 || api.parentId === undefined) continue;
+    function findParent(nodes: any[]): boolean {
+      for (const node of nodes) {
+        if (node.id === api.parentId) {
+          if (node.children !== undefined) node.children.push(api);
+          return true;
+        }
+        if (node.children && findParent(node.children)) return true;
+      }
+      return false;
+    }
+    if (findParent(tree)) continue;
+    tree.push(api);
+  }
+  return tree;
 }

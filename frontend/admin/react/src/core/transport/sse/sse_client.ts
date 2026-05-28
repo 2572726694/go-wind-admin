@@ -1,4 +1,4 @@
-import type { EventSourceMessage } from "@microsoft/fetch-event-source/lib/cjs/parse";
+import type { EventSourceMessage } from '@microsoft/fetch-event-source/lib/cjs/parse';
 
 import type {
   SSEClientConfig,
@@ -6,9 +6,9 @@ import type {
   SSEEventHandler,
   SSEEventName,
   SSETransport,
-} from "./types";
+} from './types';
 
-import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 /**
  * SSE客户端
@@ -19,7 +19,7 @@ export class SSEClient {
   private eventSource: EventSource | null = null;
   // 存储事件监听器（键：事件名，值：回调数组）
   private handlers = new Map<SSEEventName, SSEEventHandler[]>();
-  private status: SSEConnectionStatus = "disconnected";
+  private status: SSEConnectionStatus = 'disconnected';
   private readonly transport: SSETransport;
 
   constructor(config: SSEClientConfig) {
@@ -29,7 +29,7 @@ export class SSEClient {
       reconnectDelay: 3000,
       autoParseJson: true,
       headers: {},
-      transport: "fetch-event-source",
+      transport: 'fetch-event-source',
       ...config,
     };
     this.transport = this.config.transport;
@@ -62,7 +62,7 @@ export class SSEClient {
   private triggerHandler<T = unknown>(
     eventName: SSEEventName,
     data: T,
-    event: Event | EventSourceMessage
+    event: Event | EventSourceMessage,
   ): void {
     const handlers = this.handlers.get(eventName);
     if (handlers) {
@@ -87,25 +87,25 @@ export class SSEClient {
     });
 
     // 监听连接成功事件
-    this.eventSource.addEventListener("open", (event) => {
-      this.status = "connected";
-      this.triggerHandler("open", undefined, event);
+    this.eventSource.addEventListener('open', (event) => {
+      this.status = 'connected';
+      this.triggerHandler('open', undefined, event);
     });
 
     // 监听默认消息事件（服务器未指定 event 字段时触发）
-    this.eventSource.addEventListener("message", (event: MessageEvent) => {
+    this.eventSource.addEventListener('message', (event: MessageEvent) => {
       const data = this.parseData(event.data);
-      this.triggerHandler("message", data, event);
+      this.triggerHandler('message', data, event);
     });
 
     // 监听错误事件（连接断开、网络异常等）
-    this.eventSource.addEventListener("error", (event: Event) => {
-      this.status = "error";
-      this.triggerHandler("error", undefined, event as MessageEvent);
+    this.eventSource.addEventListener('error', (event: Event) => {
+      this.status = 'error';
+      this.triggerHandler('error', undefined, event as MessageEvent);
 
       // 连接关闭时尝试重连（排除手动关闭的情况）
       if (this.eventSource?.readyState === EventSource.CLOSED) {
-        this.status = "disconnected";
+        this.status = 'disconnected';
         setTimeout(() => this.connect(), this.config.reconnectDelay);
       }
     });
@@ -121,21 +121,21 @@ export class SSEClient {
     this.abortController = new AbortController();
 
     await fetchEventSource(url, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
         ...this.config.headers,
       },
-      credentials: this.config.withCredentials ? "include" : "same-origin",
+      credentials: this.config.withCredentials ? 'include' : 'same-origin',
       signal: this.abortController.signal,
       openWhenHidden: true, // 后台页保持连接（可选）
 
       // 连接成功
       onopen: async (response) => {
         if (response.ok) {
-          this.status = "connected";
-          this.triggerHandler("open", undefined, new Event("open"));
+          this.status = 'connected';
+          this.triggerHandler('open', undefined, new Event('open'));
         } else {
           throw new Error(`SSE 连接失败 ${response.status}`);
         }
@@ -146,18 +146,18 @@ export class SSEClient {
         const data = this.parseData(event.data);
 
         // 自定义事件名（event: xxx）
-        if (event.event && event.event !== "message") {
+        if (event.event && event.event !== 'message') {
           this.triggerHandler(event.event as SSEEventName, data, event);
         }
 
         // 默认 message 事件
-        this.triggerHandler("message", data, event);
+        this.triggerHandler('message', data, event);
       },
 
       // 错误 & 重连
       onerror: (err) => {
-        this.status = "error";
-        this.triggerHandler("error", err, new Event("error"));
+        this.status = 'error';
+        this.triggerHandler('error', err, new Event('error'));
 
         // 手动关闭不重连
         if (this.abortController?.signal.aborted) {
@@ -169,8 +169,8 @@ export class SSEClient {
 
       // 关闭
       onclose: () => {
-        this.status = "disconnected";
-        throw new Error("SSE 连接关闭，准备重连");
+        this.status = 'disconnected';
+        throw new Error('SSE 连接关闭，准备重连');
       },
     });
   }
@@ -187,7 +187,7 @@ export class SSEClient {
       this.abortController.abort();
       this.abortController = null;
     }
-    this.status = "disconnected";
+    this.status = 'disconnected';
   }
 
   /**
@@ -195,15 +195,15 @@ export class SSEClient {
    * @param url 可选连接 URL，默认为配置中的 URL
    */
   connect(url?: string): Error | null {
-    if (this.status === "connected" || this.status === "connecting") {
-      console.warn("SSE 连接已存在或正在建立中");
-      return new Error("SSE 连接已存在或正在建立中");
+    if (this.status === 'connected' || this.status === 'connecting') {
+      console.warn('SSE 连接已存在或正在建立中');
+      return new Error('SSE 连接已存在或正在建立中');
     }
 
-    const targetUrl = url === undefined || url === "" ? this.config.url : url;
+    const targetUrl = url === undefined || url === '' ? this.config.url : url;
 
-    this.status = "connecting";
-    if (this.transport === "event-source") {
+    this.status = 'connecting';
+    if (this.transport === 'event-source') {
       this._connectByEventSource(targetUrl);
     } else {
       this._connectByFetchEventSource(targetUrl);
@@ -232,7 +232,7 @@ export class SSEClient {
       // 移除指定回调
       this.handlers.set(
         eventName,
-        handlers.filter((h) => h !== handler)
+        handlers.filter((h) => h !== handler),
       );
     } else {
       // 移除所有回调
@@ -253,7 +253,7 @@ export class SSEClient {
     this.handlers.get(eventName)?.push(handler as SSEEventHandler);
 
     // 对自定义事件（非 open/error/message），需要额外注册到 EventSource
-    if (!["error", "message", "open"].includes(eventName) && this.eventSource) {
+    if (!['error', 'message', 'open'].includes(eventName) && this.eventSource) {
       this.eventSource.addEventListener(eventName, (event) => {
         const data = this.parseData((event as MessageEvent).data);
         this.triggerHandler(eventName, data, event as MessageEvent);

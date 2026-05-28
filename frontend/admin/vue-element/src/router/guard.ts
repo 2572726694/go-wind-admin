@@ -7,9 +7,10 @@ import { preferences } from "@/core/preferences";
 import { accessRoutes, coreRouteNames } from "@/router/routes";
 import { useAccessStore, useAppUserStore } from "@/stores";
 import { useAuth } from "@/composables/use-auth";
-import { fetchAllDictEntries } from "@/api/composables/use-dict-cache";
 
 import { generateAccess } from "./access";
+import { fetchAllDictEntries } from "@/composables/use-dict-cache";
+import { translateRouteTitle } from "@/i18n";
 
 /**
  * 通用守卫配置
@@ -37,6 +38,19 @@ function setupCommonGuard(router: Router) {
     // 关闭页面加载进度条
     if (preferences.transition.progress) {
       stopProgress();
+    }
+
+    // 动态更新页面标题
+    if (preferences.app.dynamicTitle) {
+      const routeTitle = to.meta?.title as string | undefined;
+      if (routeTitle) {
+        const translatedTitle = translateRouteTitle(routeTitle);
+        const appTitle = preferences.app.name || "GoWind Admin";
+        document.title = `${translatedTitle} - ${appTitle}`;
+      } else {
+        // 如果路由没有标题，只显示应用名称
+        document.title = preferences.app.name || "GoWind Admin";
+      }
     }
   });
 }
@@ -90,8 +104,7 @@ function setupAccessGuard(router: Router) {
     }
 
     // 生成路由表
-    // 当前登录用户拥有的角色标识列表
-
+    // 分别获取角色码和权限码
     const userPermissionCodes = await auth.getUserPermissionCodes();
     if (!userPermissionCodes) {
       return false;
@@ -102,7 +115,8 @@ function setupAccessGuard(router: Router) {
 
     // 生成菜单和路由
     const { accessibleMenus, accessibleRoutes } = await generateAccess({
-      roles: userPermissionCodes,
+      roles: userStore.userRoles,
+      accessCodes: accessStore.accessCodes,
       router,
       // 则会在菜单中显示，但是访问会被重定向到403
       routes: accessRoutes,
