@@ -1,0 +1,66 @@
+# GoWind Admin Service - Air 热更新配置
+# 用法: 在 backend/app/admin/service/ 目录下执行 air
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # 构建命令（与 Makefile 中 run 目标一致）
+  cmd = "go build -mod=mod -o ./tmp/main.exe ./cmd/server"
+  # 运行入口（替代已弃用的 bin 字段）
+  entrypoint = ["./tmp/main.exe", "-c", "./configs"]
+  # 构建完成后自动运行
+  rerun = true
+  # 文件变动后的等待延迟，避免频繁触发
+  delay = 1000 # ms
+  # 监听目录（相对于 root，仅限 root 内的目录）
+  # 注：pkg/ 和 api/gen/go/ 在 root 外，air 不支持，
+  # 修改这两个目录后需手动重启 air
+  include_dir = [
+    "cmd",
+    "internal",
+  ]
+  # 排除目录
+  exclude_dir = [
+    "tmp",
+    "bin",
+    "configs",
+    "scripts",
+    "assets",
+  ]
+  # 监听的文件扩展名
+  include_ext = ["go", "yaml"]
+  # 排除的文件
+  exclude_file = []
+  # 排除正则
+  exclude_regex = ["_test\\.go$", "wire_gen\\.go$"]
+  # 文件变动后先 kill 旧进程再启动
+  kill_delay = 500 # ms
+  # 退出时清理 tmp 目录
+  rerun_delay = 500 # ms
+  # 构建失败时停止运行旧的二进制
+  stop_on_error = true
+  # 发送中断信号而不是 kill（Windows 下无效）
+  send_interrupt = false
+
+[color]
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  # 显示日志时间
+  time = false
+  # 只显示主进程日志
+  main_only = false
+
+[misc]
+  # 退出时清理 tmp 目录
+  clean_on_exit = true
+
+[screen]
+  # 每次重新构建时清屏
+  clear_on_rebuild = false
+  # 保留滚动历史
+  keep_scroll = true
