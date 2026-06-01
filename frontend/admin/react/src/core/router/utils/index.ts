@@ -1,4 +1,5 @@
 export * from './inject-redirect';
+export * from './lazy';
 export * from './loader';
 export * from './menu';
 export * from './merge-route-modules';

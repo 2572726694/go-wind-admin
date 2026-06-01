@@ -1,23 +1,10 @@
 <template>
-  <svg
-    height="600"
-    viewBox="0 0 600 600"
-    width="600"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg">
     <!-- Background circle -->
     <circle cx="300" cy="300" fill="#f5f5f5" r="280" />
 
     <!-- Lock body -->
-    <rect
-      fill="#3f3d56"
-      height="140"
-      rx="16"
-      ry="16"
-      width="180"
-      x="210"
-      y="260"
-    />
+    <rect fill="#3f3d56" height="140" rx="16" ry="16" width="180" x="210" y="260" />
 
     <!-- Lock shackle -->
     <path
@@ -30,28 +17,13 @@
 
     <!-- Keyhole -->
     <circle cx="300" cy="320" fill="#fff" r="20" />
-    <rect
-      fill="#fff"
-      height="40"
-      width="16"
-      x="292"
-      y="320"
-    />
+    <rect fill="#fff" height="40" width="16" x="292" y="320" />
 
     <!-- Warning triangle -->
-    <path
-      d="M280 140 L320 140 L300 100 Z"
-      fill="#ff6b6b"
-    />
+    <path d="M280 140 L320 140 L300 100 Z" fill="#ff6b6b" />
 
     <!-- Exclamation mark -->
-    <rect
-      fill="#fff"
-      height="20"
-      width="6"
-      x="297"
-      y="112"
-    />
+    <rect fill="#fff" height="20" width="6" x="297" y="112" />
     <circle cx="300" cy="148" fill="#fff" r="4" />
 
     <!-- Decorative elements -->

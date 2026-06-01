@@ -4,12 +4,12 @@
     <div class="navbar__left">
       <!-- 侧边栏显示/隐藏按钮 -->
       <div v-if="widget.sidebarToggle" class="navbar-action" @click="toggleSidebarVisibility">
-        <div :class="['i-svg:collapse', { 'is-active': isSidebarEnabled }]" />
+        <SvgIcon icon="collapse" :class="{ 'is-active': isSidebarEnabled }" />
       </div>
 
       <!-- 刷新内容区按钮 -->
       <div v-if="widget.refresh" class="navbar-action" @click="handleRefresh">
-        <div :class="['i-svg:refresh', { 'is-spin': contentRefreshing }]" />
+        <SvgIcon icon="refresh" :class="{ 'is-spin': contentRefreshing }" />
       </div>
 
       <!-- 面包屑 -->
@@ -19,7 +19,7 @@
     <!-- ==================== 右侧区域 ==================== -->
     <div class="navbar__right">
       <!-- 全局搜索 -->
-      <div v-if="widget.globalSearch" class="navbar-action">
+      <div v-if="widget.globalSearch" class="navbar-action navbar-action--search">
         <CommandPalette />
       </div>
 
@@ -29,7 +29,7 @@
         class="navbar-action"
         @click="handleSettingsClick"
       >
-        <div class="i-svg:setting" />
+        <SvgIcon icon="setting" />
       </div>
 
       <!-- 主题切换 -->
@@ -53,16 +53,13 @@
       </div>
 
       <!-- 用户头像下拉 -->
-      <div class="navbar-action">
+      <div class="navbar-action navbar-action--profile">
         <el-dropdown trigger="click">
           <div class="user-profile">
-            <div style="width: 28px; height: 28px; overflow: hidden; border-radius: 50%">
-              <img
-                :src="userStore.userInfo?.avatar || '/default-avatar.png'"
-                class="user-profile__avatar"
-                style="width: 100%; height: 100%; object-fit: cover; object-position: center"
-              />
-            </div>
+            <img
+              :src="userStore.userInfo?.avatar || '/default-avatar.png'"
+              class="user-profile__avatar"
+            />
             <span class="user-profile__name">{{ userStore.userInfo?.username || "" }}</span>
           </div>
           <template #dropdown>
@@ -88,6 +85,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppUserStore } from "@/stores";
 import { useAuth } from "@/composables/use-auth";
 import { preferences, preferencesManager } from "@/core/preferences";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 import LayoutBreadcrumb from "./LayoutBreadcrumb.vue";
 import CommandPalette from "@/components/CommandPalette/index.vue";
@@ -111,6 +109,9 @@ const settingsVisible = inject<Ref<boolean>>("settingsVisible", ref(false));
 // 注入内容区刷新状态
 const contentRefreshing = inject<Ref<boolean>>("contentRefreshing", ref(false));
 
+// 注入刷新 key
+const contentRefreshKey = inject<Ref<number>>("contentRefreshKey", ref(0));
+
 // 侧边栏是否启用
 const isSidebarEnabled = computed(() => preferences.sidebar.enable);
 
@@ -127,18 +128,16 @@ function toggleSidebarVisibility() {
 function handleRefresh() {
   if (contentRefreshing.value) return;
   contentRefreshing.value = true;
-  // 双重 rAF：第一帧让 Vue 完成 DOM 卸载，第二帧确保浏览器已渲染空状态
-  // 这样 ElForm 的 ResizeObserver 在下一帧触发时容器已不存在，不会报 NaN
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      contentRefreshing.value = false;
-    });
+  // 递增 key 强制组件销毁重建（router-view 保持挂载，不会触发 ResizeObserver 错误）
+  contentRefreshKey.value++;
+  nextTick(() => {
+    contentRefreshing.value = false;
   });
 }
 
 /** 打开个人中心 */
 function handleProfileClick() {
-  router.push({ name: "Profile" });
+  router.push({ name: "UserProfile" });
 }
 
 /** 退出登录 */
@@ -198,7 +197,9 @@ function handleSettingsClick() {
   height: 40px;
   padding: 0 8px;
   cursor: pointer;
-  transition: all 0.3s;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: transparent;
 
   > * {
     display: flex;
@@ -219,20 +220,84 @@ function handleSettingsClick() {
     font-size: 18px;
     line-height: 1;
     color: var(--el-text-color-regular);
-    transition: color 0.3s;
+    transition: all 0.2s ease;
   }
 
+  // hover 态：柔和背景 + 图标主色高亮 + 轻微放大
   &:hover {
-    background: var(--el-fill-color-light);
+    background: rgba(0, 0, 0, 0.04);
+    transform: scale(1.05);
 
     :deep([class^="i-svg:"]) {
       color: var(--el-color-primary);
     }
   }
 
+  // 搜索按钮特殊处理：不放大、不显示背景，让内部胶囊条自行处理 hover
+  &--search {
+    min-width: auto;
+    padding: 0;
+    margin-right: 4px;
+    background: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+
+    &:hover {
+      background: transparent;
+      transform: none;
+      box-shadow: none;
+
+      :deep([class^="i-svg:"]) {
+        color: var(--el-text-color-secondary);
+      }
+    }
+  }
+
+  // 用户头像区域：不放大，仅显示柔和背景
+  &--profile {
+    min-width: auto;
+    padding: 0 4px;
+    transform: none !important;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+      transform: none;
+    }
+  }
+
+  // 暗黑模式 hover
+  html.dark & {
+    :deep([class^="i-svg:"]) {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+
+      :deep([class^="i-svg:"]) {
+        color: #ffffff;
+      }
+    }
+  }
+
+  // 半深色顶栏 hover
+  html.semi-dark-header & {
+    :deep([class^="i-svg:"]) {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+
+      :deep([class^="i-svg:"]) {
+        color: #ffffff;
+      }
+    }
+  }
+
   // 折叠按钮激活状态
   .i-svg\:collapse {
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
     transform: scaleX(-1);
 
     &.is-active {
@@ -242,7 +307,7 @@ function handleSettingsClick() {
 
   // 刷新按钮旋转动画
   .i-svg\:refresh {
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
 
     &.is-spin {
       animation: spin 0.6s linear;
@@ -256,21 +321,41 @@ function handleSettingsClick() {
   align-items: center;
   justify-content: center;
   height: 40px;
-  padding: 0 8px;
+  padding: 0 4px;
   cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 
   &__avatar {
     flex-shrink: 0;
     width: 28px;
     height: 28px;
+    overflow: hidden;
     border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
   }
 
   &__name {
     margin-left: 8px;
+    font-size: 14px;
     color: var(--el-text-color-regular);
     white-space: nowrap;
-    transition: color 0.3s;
+    transition: color 0.2s ease;
+  }
+
+  // 暗黑模式
+  html.dark & {
+    &__name {
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+
+  // 半深色顶栏
+  html.semi-dark-header & {
+    &__name {
+      color: rgba(255, 255, 255, 0.85);
+    }
   }
 }
 

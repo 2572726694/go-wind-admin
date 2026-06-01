@@ -12,7 +12,7 @@
           :index="resolvePath(item.path)"
           :class="{ 'submenu-title-noDropdown': !isNest }"
         >
-          <MenuIcon :icon="getMetaIcon(item.meta)" />
+          <SvgIcon :icon="getMetaIcon(item.meta) || 'menu'" :size="18" />
           <span v-if="item.meta?.title" class="menu-title">
             {{ translateRouteTitle(getMetaTitle(item.meta)) }}
           </span>
@@ -24,7 +24,7 @@
     <el-sub-menu v-else :index="resolvePath(item.path)" :data-path="item.path" teleported>
       <template #title>
         <template v-if="item.meta">
-          <MenuIcon :icon="getMetaIcon(item.meta)" />
+          <SvgIcon :icon="getMetaIcon(item.meta) || 'menu'" :size="18" />
           <span v-if="item.meta.title" class="menu-title">
             {{ translateRouteTitle(getMetaTitle(item.meta)) }}
           </span>
@@ -46,42 +46,12 @@
 import path from "path-browserify";
 import { RouteRecordRaw, LocationQueryRaw } from "vue-router";
 import { isExternal } from "@/utils";
-import { translateRouteTitle } from '@/core/i18n';
-import { ElIcon } from "element-plus";
+import { translateRouteTitle } from "@/core/i18n";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 defineOptions({
   name: "LayoutSidebarItem",
   inheritAttrs: false,
-});
-
-// 菜单图标组件
-const MenuIcon = defineComponent({
-  props: { icon: String },
-  setup(props) {
-    const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
-    const isLucideIcon = computed(() => props.icon?.startsWith("lucide:"));
-    const iconName = computed(() => props.icon?.replace("el-icon-", ""));
-    const lucideName = computed(() => props.icon?.replace("lucide:", ""));
-
-    return () => {
-      if (!props.icon) {
-        return h("div", { class: "i-svg:menu" });
-      }
-
-      // Element Plus 图标
-      if (isElIcon.value) {
-        return h(ElIcon, null, () => h(resolveComponent(iconName.value!)));
-      }
-
-      // Lucide 图标
-      if (isLucideIcon.value) {
-        return h("div", { class: `i-lucide:${lucideName.value}` });
-      }
-
-      // SVG 图标
-      return h("div", { class: `i-svg:${props.icon}` });
-    };
-  },
 });
 
 const props = defineProps({
@@ -158,8 +128,7 @@ function resolvePath(routePath: string) {
     color: currentcolor;
   }
 
-  [class^="i-svg:"],
-  [class^="i-lucide:"] {
+  [class^="i-"] {
     width: 18px;
     height: 18px;
     font-size: 18px;
@@ -175,8 +144,7 @@ function resolvePath(routePath: string) {
 .el-menu--collapse {
   .el-menu-item,
   .el-sub-menu > .el-sub-menu__title {
-    [class^="i-svg:"],
-    [class^="i-lucide:"] {
+    [class^="i-"] {
       width: 18px !important;
       min-width: 18px !important;
       height: 18px !important;
@@ -191,8 +159,7 @@ function resolvePath(routePath: string) {
 
   /* tooltip 弹出层中的图标 */
   .el-tooltip__trigger {
-    [class^="i-svg:"],
-    [class^="i-lucide:"] {
+    [class^="i-"] {
       width: 18px !important;
       min-width: 18px !important;
       height: 18px !important;
@@ -208,8 +175,7 @@ function resolvePath(routePath: string) {
 
 /* hideSidebar 状态下的图标 */
 .hideSidebar {
-  [class^="i-svg:"],
-  [class^="i-lucide:"] {
+  [class^="i-"] {
     width: 18px !important;
     min-width: 18px !important;
     height: 18px !important;
@@ -258,49 +224,52 @@ function resolvePath(routePath: string) {
 }
 
 html.dark {
-  .el-menu-item:hover {
-    background-color: $menu-hover;
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
   }
 }
 
 html.sidebar-color-blue {
-  .el-menu-item:hover {
-    background-color: $menu-hover;
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background-color: var(--menu-hover) !important;
   }
 }
 
 // 父菜单激活状态样式 - 当子菜单激活时，父菜单显示激活状态
 .el-sub-menu {
-  // 当父菜单包含激活子菜单时的样式
+  // 亮色：仅主色文字，无背景，不抢子菜单焦点
   &.has-active-child > .el-sub-menu__title {
     color: var(--el-color-primary) !important;
-    background-color: var(--el-color-primary-light-9) !important;
+    font-weight: 500 !important;
 
     .menu-icon {
       color: var(--el-color-primary) !important;
     }
   }
 
-  // 深色主题下的父菜单激活状态"
+  // 暗色：同源同色
   html.dark & {
     &.has-active-child > .el-sub-menu__title {
-      color: var(--el-color-primary-light-3) !important;
-      background-color: rgba(64, 128, 255, 0.15) !important;
+      color: var(--el-color-primary) !important;
+      font-weight: 500 !important;
 
       .menu-icon {
-        color: var(--el-color-primary-light-3) !important;
+        color: var(--el-color-primary) !important;
       }
     }
   }
 
-  // 深蓝色侧边栏配色下的父菜单激活状态"
+  // 深蓝色侧边栏
   html.sidebar-color-blue & {
     &.has-active-child > .el-sub-menu__title {
-      color: var(--el-color-primary-light-3) !important;
-      background-color: rgba(64, 128, 255, 0.2) !important;
+      color: var(--el-color-primary) !important;
+      font-weight: 500 !important;
 
       .menu-icon {
-        color: var(--el-color-primary-light-3) !important;
+        color: var(--el-color-primary) !important;
       }
     }
   }

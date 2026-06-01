@@ -3,14 +3,14 @@
     <ProPage ref="pageRef" :config="pageConfig" @add="handleAdd" @edit="handleEdit">
       <!-- 是否启用 -->
       <template #isEnabled="scope: any">
-        <ElTag size="small" effect="dark" round :color="enableBoolToColor(scope.row.isEnabled)">
+        <ElTag size="small" :type="scope.row.isEnabled ? 'success' : 'info'" effect="plain">
           {{ enableBoolToName(scope.row.isEnabled) }}
         </ElTag>
       </template>
 
       <!-- 是否默认 -->
       <template #isDefault="scope: any">
-        <ElTag size="small" effect="dark" round :color="enableBoolToColor(scope.row.isDefault)">
+        <ElTag size="small" :type="scope.row.isDefault ? 'primary' : 'info'" effect="plain">
           {{ enableBoolToName(scope.row.isDefault) }}
         </ElTag>
       </template>
@@ -29,14 +29,9 @@ import ProPage from "@/components/Pro/ProPage/index.vue";
 import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 import LanguageDrawer from "./language-drawer.vue";
 
-import {
-  enableBoolToColor,
-  enableBoolToName,
-  fetchListLanguages,
-  useDeleteLanguage,
-} from "@/api/composables";
+import { enableBoolToName, fetchListLanguages, useDeleteLanguage } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const { mutateAsync: deleteLanguage } = useDeleteLanguage();
 
@@ -44,7 +39,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -98,7 +92,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 100,
         slotName: "isDefault",
       },
-      { prop: "sortOrder", label: $t("common.table.sortOrder"), width: 100 },
+      { prop: "sortOrder", label: $t("common.table.sortOrder"), width: 100, align: "right" },
       {
         prop: "createdAt",
         label: $t("common.table.createdAt"),
@@ -113,8 +107,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

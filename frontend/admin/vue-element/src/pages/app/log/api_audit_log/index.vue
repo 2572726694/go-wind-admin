@@ -31,18 +31,18 @@ import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 
 import {
   methodList,
+  httpMethodTagTypeMap,
   successStatusList,
   successToColor,
   successToNameWithStatusCode,
   fetchListApiAuditLogs,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const pageRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -158,7 +158,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
     toolbar: [],
     toolbarRight: [],
     defaultToolbar: ["refresh", "exports", "filter"],
-    tableAttrs: { border: true, stripe: false },
+    tableAttrs: { border: true, stripe: true },
     columns: [
       {
         prop: "createdAt",
@@ -174,9 +174,15 @@ const pageConfig = computed<ProPageConfig>(() => ({
         slotName: "success",
       },
       { prop: "username", label: $t("pages.api_audit_log.username"), minWidth: 120 },
-      { prop: "httpMethod", label: $t("pages.api_audit_log.httpMethod"), width: 100 },
+      {
+        prop: "httpMethod",
+        label: $t("pages.api_audit_log.httpMethod"),
+        width: 100,
+        cellType: "tag",
+        tagTypeMap: httpMethodTagTypeMap,
+      },
       { prop: "path", label: $t("pages.api_audit_log.path"), minWidth: 200 },
-      { prop: "latencyMs", label: $t("pages.api_audit_log.latencyMs"), width: 120 },
+      { prop: "latencyMs", label: $t("pages.api_audit_log.latencyMs"), width: 120, align: "right" },
       {
         prop: "deviceInfo.platform",
         label: $t("pages.api_audit_log.platform"),
@@ -189,7 +195,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
         minWidth: 150,
         slotName: "geoLocation",
       },
-      { prop: "ipAddress", label: $t("pages.api_audit_log.ipAddress"), width: 140 },
+      { prop: "ipAddress", label: $t("pages.api_audit_log.ipAddress"), width: 140, align: "right" },
     ],
   },
 }));

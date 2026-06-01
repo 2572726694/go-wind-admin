@@ -75,9 +75,7 @@ export class ProPageApi {
 
   constructor(config?: ProPageConfig) {
     const defaultState = getDefaultState();
-    this.store = reactive(
-      mergeWithArrayOverride({ config }, defaultState) as ProPageState,
-    );
+    this.store = reactive(mergeWithArrayOverride({ config }, defaultState) as ProPageState);
 
     this.stateHandler = new StateHandler();
     bindMethods(this);
@@ -98,15 +96,9 @@ export class ProPageApi {
    * pageApi.setState(prev => ({ searchParams: { ...prev.searchParams, extra: 1 } }));
    * ```
    */
-  setState(
-    stateOrFn:
-      | ((prev: ProPageState) => Partial<ProPageState>)
-      | Partial<ProPageState>,
-  ) {
+  setState(stateOrFn: ((prev: ProPageState) => Partial<ProPageState>) | Partial<ProPageState>) {
     const prev = toRaw(this.store) as ProPageState;
-    const update = isFunction(stateOrFn)
-      ? stateOrFn(prev)
-      : stateOrFn;
+    const update = isFunction(stateOrFn) ? stateOrFn(prev) : stateOrFn;
     const merged = mergeWithArrayOverride(update, prev) as ProPageState;
     Object.assign(this.store, merged);
   }
@@ -122,9 +114,7 @@ export class ProPageApi {
   }
 
   /** 获取状态的响应式引用 */
-  useStore<T = ProPageState>(
-    selector?: (state: NoInfer<ProPageState>) => T,
-  ): Readonly<Ref<T>> {
+  useStore<T = ProPageState>(selector?: (state: NoInfer<ProPageState>) => T): Readonly<Ref<T>> {
     const sel = selector ?? ((s: any) => s);
     return computed(() => sel(this.store)) as Readonly<Ref<T>>;
   }

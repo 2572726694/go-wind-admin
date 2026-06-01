@@ -1,6 +1,5 @@
 <template>
-  <div class="pro-table">
-    <!-- ======================== vxe-table 引擎 ======================== -->
+  <div ref="tableWrapperRef" class="pro-table" :style="tableStyle">
     <vxe-table
       v-if="engine === 'vxe'"
       :id="tableId"
@@ -9,25 +8,30 @@
       :row-config="{ keyField: rowKey, isHover: true, isCurrent: true }"
       :column-config="{ resizable: true }"
       :custom-config="{ storage: !!tableId, checkMethod }"
+      :height="vxeTableHeight"
       :data="data"
       class="w-full"
+      :border="tableConfig.border"
       v-bind="tableAttrs"
       @checkbox-change="handleVxeSelectionChange"
       @checkbox-all="handleVxeSelectionChange"
       @current-change="handleVxeCurrentChange"
+      @sort-change="handleSortChange"
     >
-      <template v-for="col in resolvedColumns" :key="col.prop ?? col.type">
-        <!-- 复选框列 -->
+      <template v-for="(col, colIdx) in resolvedColumns" :key="col.prop ?? col.type ?? colIdx">
         <vxe-column v-if="col.type === 'selection'" type="checkbox" width="50" align="center" />
-        <!-- 序号列 -->
-        <vxe-column v-else-if="col.type === 'index'" type="seq" width="60" align="center" />
-        <!-- 展开列 -->
+        <vxe-column
+          v-else-if="col.type === 'index'"
+          type="seq"
+          :title="col.label"
+          :width="col.width ?? 60"
+          align="center"
+        />
         <vxe-column v-else-if="col.type === 'expand'" type="expand">
           <template #default="scope">
             <slot name="expand" v-bind="scope" />
           </template>
         </vxe-column>
-        <!-- 普通列 -->
         <vxe-column
           v-else-if="col.show !== false"
           :field="col.prop"
@@ -42,13 +46,17 @@
                 : undefined
           "
           :align="col.align || 'center'"
-          :sortable="col.sortable === true"
+          :sortable="!!col.sortable"
+          :show-overflow="col.showOverflowTooltip ? 'tooltip' : false"
           :resizable="col.resizable !== false"
           :tree-node="col.treeNode"
+          :cell-style="col.cellStyle"
+          :header-style="col.headerStyle"
+          :class-name="col.className"
+          :header-class-name="col.headerClassName"
           v-bind="col.attrs"
         >
           <template #default="scope">
-            <!-- 自定义插槽 -->
             <slot
               v-if="col.cellType === 'custom' || col.slotName"
               :name="col.slotName ?? col.prop"
@@ -56,7 +64,6 @@
               :column="scope.column"
               :index="scope.rowIndex"
             />
-            <!-- 共享单元格渲染 -->
             <ProTableCellContent
               v-else
               :col="col"
@@ -68,38 +75,45 @@
           </template>
         </vxe-column>
       </template>
+      <template #empty>
+        <div class="pro-table__empty">
+          <IconifyIcon icon="lucide:inbox" class="pro-table__empty-icon" />
+          <span>{{ t(tableConfig.emptyText ?? "common.table.noData") }}</span>
+        </div>
+      </template>
     </vxe-table>
 
-    <!-- ======================== el-table 引擎 ======================== -->
     <ElTable
       v-else
       ref="tableRef"
       v-loading="loading ?? false"
       :data="data"
       :row-key="rowKey"
-      border
       style="width: 100%"
+      :border="tableConfig.border === 'none' ? false : !!tableConfig.border"
       v-bind="tableAttrs"
       @selection-change="handleElSelectionChange"
       @current-change="handleElCurrentChange"
+      @sort-change="handleSortChange"
     >
-      <template v-for="col in resolvedColumns" :key="col.prop ?? col.type">
-        <!-- 复选框列 -->
+      <template v-for="(col, colIdx) in resolvedColumns" :key="col.prop ?? col.type ?? colIdx">
         <ElTableColumn
           v-if="col.type === 'selection'"
           type="selection"
           width="50"
           :reserve-selection="col.reserveSelection ?? true"
         />
-        <!-- 序号列 -->
-        <ElTableColumn v-else-if="col.type === 'index'" type="index" width="60" />
-        <!-- 展开列 -->
+        <ElTableColumn
+          v-else-if="col.type === 'index'"
+          type="index"
+          :label="col.label"
+          :width="col.width ?? 60"
+        />
         <ElTableColumn v-else-if="col.type === 'expand'" type="expand">
           <template #default="scope">
             <slot name="expand" v-bind="scope" />
           </template>
         </ElTableColumn>
-        <!-- 普通列 -->
         <ElTableColumn
           v-else-if="col.show !== false"
           :prop="col.prop"
@@ -110,10 +124,13 @@
           :sortable="col.sortable"
           :align="col.align || 'center'"
           :show-overflow-tooltip="col.showOverflowTooltip ?? true"
+          :cell-style="col.cellStyle"
+          :header-style="col.headerStyle"
+          :class-name="col.className"
+          :header-class-name="col.headerClassName"
           v-bind="col.attrs"
         >
           <template #default="scope">
-            <!-- 自定义插槽 -->
             <slot
               v-if="col.cellType === 'custom' || col.slotName"
               :name="col.slotName ?? col.prop"
@@ -121,7 +138,6 @@
               :column="scope.column"
               :index="scope.$index"
             />
-            <!-- 共享单元格渲染 -->
             <ProTableCellContent
               v-else
               :col="col"
@@ -133,15 +149,22 @@
           </template>
         </ElTableColumn>
       </template>
+      <template #empty>
+        <div class="pro-table__empty">
+          <IconifyIcon icon="lucide:inbox" class="pro-table__empty-icon" />
+          <span>{{ t(tableConfig.emptyText ?? "common.table.noData") }}</span>
+        </div>
+      </template>
     </ElTable>
 
-    <!-- 分页 -->
     <ProPagination
-      v-if="pagination"
+      v-if="paginationConfig.show && pagination !== false"
       :current-page="currentPage ?? 1"
-      :page-size="pageSize ?? 20"
+      :page-size="pageSize ?? paginationConfig.pageSize"
       :total="total ?? 0"
-      :page-sizes="pageSizes"
+      :page-sizes="pageSizes ?? paginationConfig.pageSizes"
+      :layout="paginationConfig.layout"
+      :background="paginationConfig.background"
       @current-change="(val: number) => emit('current-change', val)"
       @size-change="(val: number) => emit('size-change', val)"
     />
@@ -149,10 +172,13 @@
 </template>
 
 <script setup lang="ts" generic="T extends Record<string, any>">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { Icon as IconifyIcon } from "@iconify/vue";
 import { ElTable, ElTableColumn } from "element-plus";
 import ProPagination from "../ProPagination/index.vue";
 import ProTableCellContent from "./ProTableCellContent.vue";
+import { proTableGlobalConfig, mergeTableConfig } from "./proTableConfig";
 import type { ProTableProps } from "./types";
 
 const props = withDefaults(defineProps<ProTableProps<T>>(), {
@@ -162,6 +188,9 @@ const props = withDefaults(defineProps<ProTableProps<T>>(), {
   currentPage: 1,
   pageSize: 20,
 });
+
+const { t } = useI18n();
+
 const emit = defineEmits<{
   "selection-change": [rows: T[]];
   modify: [data: { row: T; field: string; value: any }];
@@ -169,72 +198,128 @@ const emit = defineEmits<{
   "current-change": [currentPage: number];
   "size-change": [pageSize: number];
   "row-click": [row: T];
+  "sort-change": [data: { prop: string; order: string | null }];
 }>();
 
 const tableRef = ref<any>(null);
+const tableWrapperRef = ref<HTMLElement | null>(null);
+const vxeTableHeight = ref<number | undefined>(undefined);
 const engine = props.engine;
 const tableId = props.tableId;
+const rowKey = props.rowKey;
 
-// 解析列（支持 initFn 和 show 默认值）
-// 使用 computed 以响应外部 columns prop 的变化（如语言切换时 computed pageConfig 重新求值）
+// ResizeObserver: 动态计算 vxe-table 的像素高度
+let resizeObserver: ResizeObserver | null = null;
+
+function updateTableHeight() {
+  if (!tableWrapperRef.value) return;
+  const wrapperHeight = tableWrapperRef.value.clientHeight;
+  if (wrapperHeight <= 0) return;
+  // 减去分页器高度（如果存在）
+  const pagerEl = tableWrapperRef.value.querySelector(".pro-pagination") as HTMLElement | null;
+  const pagerHeight = pagerEl ? pagerEl.offsetHeight + 12 : 0; // 12 = margin/gap
+  vxeTableHeight.value = wrapperHeight - pagerHeight;
+}
+
+onMounted(() => {
+  nextTick(() => {
+    if (tableWrapperRef.value) {
+      resizeObserver = new ResizeObserver(() => {
+        updateTableHeight();
+      });
+      resizeObserver.observe(tableWrapperRef.value);
+      updateTableHeight();
+    }
+  });
+});
+
+// 分页器显隐变化时重新计算
+watch(
+  () => [props.pagination, props.total],
+  () => nextTick(updateTableHeight)
+);
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+});
+
+const tableConfig = computed(() => mergeTableConfig(proTableGlobalConfig, props.config));
+const paginationConfig = computed(() => tableConfig.value.pagination!);
+
+const tableStyle = computed(() => ({
+  "--pro-table-radius": `${tableConfig.value.borderRadius}px`,
+  "--pro-table-font-size": `${tableConfig.value.fontSize}px`,
+}));
+
+const tableAttrs = computed(() => ({
+  stripe: tableConfig.value.stripe,
+  ...props.table,
+}));
+
 const resolvedColumns = computed(() =>
   [...props.columns].map((col) => {
     const resolved = { ...col };
-    if (resolved.initFn) resolved.initFn(resolved as unknown as Record<string, any>);
+    const colDef = tableConfig.value.column!;
+
+    if (resolved.align === undefined) resolved.align = colDef.align;
+    if (resolved.resizable === undefined) resolved.resizable = colDef.resizable;
+    if (resolved.showOverflowTooltip === undefined) {
+      resolved.showOverflowTooltip = colDef.showOverflowTooltip;
+    }
+    if (resolved.sortable === undefined) resolved.sortable = colDef.sortable;
+
+    if (resolved.initFn) resolved.initFn(resolved);
     if (resolved.show === undefined) resolved.show = true;
     return resolved;
   })
 );
 
-// 透传 table 属性
-const tableAttrs = props.table ?? {};
-const rowKey = props.rowKey;
-
-// vxe-table customConfig checkMethod: 控制 selection/index 列不可被自定义隐藏
 function checkMethod({ column }: { column: any }) {
   const field = column.field ?? column.type;
   return field !== "checkbox" && field !== "seq" && column.type !== "checkbox";
 }
 
-// === vxe-table 选中处理 ===
 function handleVxeSelectionChange({ records }: { records: T[] }) {
   emit("selection-change", records);
 }
 
-// === el-table 选中处理 ===
 function handleElSelectionChange(rows: T[]) {
   emit("selection-change", rows);
 }
 
-// === vxe-table 行点击（高亮行切换） ===
 function handleVxeCurrentChange({ row }: { row: T }) {
   emit("row-click", row);
 }
 
-// === el-table 行点击 ===
 function handleElCurrentChange(row: T) {
   emit("row-click", row);
 }
 
-// === 统一 expose API ===
+function handleSortChange(data: any) {
+  const prop = data.prop ?? data.property ?? data.field;
+  const order = data.order;
+  emit("sort-change", { prop, order });
+}
+
 defineExpose({
   tableRef,
   resolvedColumns,
   getSelectionRows: () => {
-    if (engine === "vxe") {
+    if (props.engine === "vxe") {
       return tableRef.value?.getCheckboxRecords?.();
     }
     return tableRef.value?.getSelectionRows?.();
   },
   clearSelection: () => {
-    if (engine === "vxe") {
+    if (props.engine === "vxe") {
       tableRef.value?.clearCheckboxRow?.();
     } else {
       tableRef.value?.clearSelection?.();
     }
   },
   toggleRowSelection: (row: T, selected?: boolean) => {
-    if (engine === "vxe") {
+    if (props.engine === "vxe") {
       tableRef.value?.setCheckboxRow?.(row, selected ?? true);
     } else {
       tableRef.value?.toggleRowSelection?.(row, selected);
@@ -245,76 +330,87 @@ defineExpose({
 
 <style lang="scss" scoped>
 .pro-table {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
-// ======================== vxe-table 样式 ========================
 :deep(.vxe-table) {
-  border-radius: 6px;
-  overflow: hidden;
-  font-size: 13px;
+  border-radius: var(--pro-table-radius);
+  font-size: var(--pro-table-font-size);
 
-  // --- 表头 ---
-  .vxe-table--header-wrapper {
-    background-color: var(--el-fill-color-light);
-
-    .vxe-header--column {
-      height: 44px !important;
-
-      .vxe-cell {
-        height: 44px !important;
-        line-height: 44px !important;
-        font-weight: 600;
-        font-size: 13px;
-        color: var(--el-text-color-primary);
-      }
-    }
-  }
-
-  // --- 去掉列间竖线 ---
-  .vxe-body--column,
+  // ======== 1. 清除所有竖线来源 ========
+  // 1a. 去掉所有列的 border-right / border-left
   .vxe-header--column,
+  .vxe-body--column,
   .vxe-footer--column {
     border-right: none !important;
+    border-left: none !important;
   }
 
-  // --- 表体行 ---
-  .vxe-table--body-wrapper {
-    background-color: var(--el-bg-color);
+  // 1b. 清除所有列的 background-image（vxe-table 用它画列线）
+  .vxe-header--column,
+  .vxe-body--column,
+  .vxe-footer--column {
+    background-image: none !important;
   }
 
-  .vxe-body--row {
-    background-color: var(--el-bg-color);
-    transition: background-color 0.15s ease;
+  // 1c. 隐藏 resizable handle 的伪元素（表头和表体都隐藏）
+  .vxe-cell--col-resizable::before,
+  .vxe-cell--col-resizable::after {
+    display: none !important;
+  }
 
-    .vxe-body--column {
-      height: 42px !important;
+  // ======== 2. 表头列间小竖线（自定义） ========
+  .vxe-header--column .vxe-cell {
+    display: flex;
+    align-items: center;
+    color: var(--el-text-color-primary);
+    position: relative;
 
-      .vxe-cell {
-        height: 42px !important;
-        line-height: 42px !important;
-      }
-    }
-
-    &.row--hover {
-      background-color: var(--el-fill-color-light);
-    }
-
-    &.row--current {
-      background-color: var(--el-color-primary-light-9);
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 25%;
+      width: 1px;
+      height: 50%;
+      background-color: var(--el-border-color-lighter);
     }
   }
 
-  // --- 单元格文本 ---
-  .vxe-cell {
+  // 最后一列不显示竖线
+  .vxe-header--column:last-child .vxe-cell::after {
+    display: none;
+  }
+
+  // ======== 3. 表头底部横线（与表体分割） ========
+  // 分割线样式已移至全局 _vxe-table.scss，使用 vxe-table 主题变量，
+  // 避免 scoped + :global(html.dark) 编译不可靠的问题。
+
+  // ======== 4. 表体行间横线 ========
+  .vxe-body--column {
+    border-bottom: 1px solid var(--el-border-color-lighter) !important;
+  }
+
+  // ======== 5. 文本色 ========
+  // 表头
+  .vxe-table--header-wrapper .vxe-header--column .vxe-cell {
+    color: var(--el-text-color-primary);
+  }
+  // 表项
+  .vxe-body--column .vxe-cell {
     color: var(--el-text-color-regular);
   }
 
-  // --- 复选框/序号列居中 ---
+  // 操作列按钮容器居中（针对 cellType: "tool"）
+  .vxe-body--column .flex.items-center.justify-center {
+    justify-content: center !important;
+    width: 100%;
+  }
+
   .vxe-checkbox--icon,
   .vxe-table--checkbox-column {
     display: flex;
@@ -322,47 +418,52 @@ defineExpose({
     justify-content: center;
   }
 
-  // --- 表格底部边框 ---
-  &.border--default .vxe-table--border-line {
-    border-color: var(--el-border-color-lighter);
+  // border--none 隐藏外边框线
+  &.border--none .vxe-table--border-line {
+    display: none;
   }
 
-  // --- 空数据 ---
   .vxe-table--empty-content {
-    color: var(--el-text-color-placeholder);
-    padding: 32px 0;
+    padding: 0;
   }
 }
 
-// ======================== el-table 样式 ========================
 :deep(.el-table) {
-  border-radius: 6px;
-  overflow: hidden;
-  font-size: 13px;
+  border-radius: var(--pro-table-radius);
+  overflow: auto;
+  font-size: var(--pro-table-font-size);
+  max-height: 100%;
 
-  // 表头
-  .el-table__header-wrapper {
-    .el-table__header th {
-      height: 44px;
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--el-text-color-primary);
-      background-color: var(--el-fill-color-light);
-    }
+  .el-table__header-wrapper th {
+    height: var(--pro-table-header-height);
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    background-color: var(--el-fill-color-light);
   }
 
-  // 表体行
-  .el-table__body-wrapper {
-    .el-table__row td {
-      height: 42px;
-      padding: 0;
-    }
+  .el-table__row td {
+    height: var(--pro-table-row-height);
+    padding: 0;
   }
 
-  // 空数据
   .el-table__empty-block {
+    padding: 0;
+  }
+}
+
+// 空状态：图标 + 文本
+.pro-table__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+  color: var(--el-text-color-placeholder);
+
+  &-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
     color: var(--el-text-color-placeholder);
-    padding: 32px 0;
   }
 }
 </style>

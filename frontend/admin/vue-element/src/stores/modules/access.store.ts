@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from "vue-router";
 
 import { acceptHMRUpdate, defineStore } from "pinia";
+import type { MenuRecordRaw } from "@/core/router/types";
 
 /**
  * @zh_CN 访问令牌类型

@@ -28,9 +28,10 @@ import { ElTag } from "element-plus";
 import ProPage from "@/components/Pro/ProPage/index.vue";
 import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 import {
   methodList,
+  httpMethodTagTypeMap,
   successStatusList,
   successToColor,
   successToNameWithStatusCode,
@@ -49,7 +50,6 @@ const props = defineProps({
 const pageRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -203,6 +203,8 @@ const pageConfig = computed<ProPageConfig>(() => ({
         prop: "httpMethod",
         label: $t("pages.api_audit_log.httpMethod"),
         width: 90,
+        cellType: "tag",
+        tagTypeMap: httpMethodTagTypeMap,
       },
       {
         prop: "path",
@@ -214,6 +216,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
         prop: "latencyMs",
         label: $t("pages.api_audit_log.latencyMs"),
         width: 120,
+        align: "right",
       },
       {
         prop: "platform",
@@ -231,6 +234,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
         prop: "ipAddress",
         label: $t("pages.api_audit_log.ipAddress"),
         width: 140,
+        align: "right",
       },
     ],
   },

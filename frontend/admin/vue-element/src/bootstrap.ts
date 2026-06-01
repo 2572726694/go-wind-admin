@@ -9,7 +9,7 @@ import "uno.css";
 import "animate.css";
 
 import { setupDirective } from "@/directives";
-import { setupI18n } from '@/core/i18n';
+import { setupI18n } from "@/core/i18n";
 import { setupRouter } from "@/router";
 import { initStores } from "@/stores/setup";
 import { registerGlobComp } from "@/registerGlobComp";
@@ -18,13 +18,24 @@ import { RequestClient } from "@/core/transport/rest";
 import { logoutToLoginPage, refreshToken } from "@/composables/use-token-refresh";
 import { useAccessStore } from "@/stores";
 import { createI18nGetErrorMsg } from "@/composables/use-request-error-msg";
-import { i18n } from '@/core/i18n';
+import { i18n } from "@/core/i18n";
 
 import App from "./App.vue";
 import { setupVueQuery } from "@/plugins/vue-query";
 
 async function bootstrap(namespace: string) {
   const app = createApp(App);
+
+  // 抑制 Element Plus ElForm labelWidth="auto" ResizeObserver 的无害警告
+  // 该警告在布局过渡期（侧边栏宽度变化、布局切换等）时触发，属于正常现象
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    const msg = args[0];
+    if (msg && typeof msg === "object" && String(msg).includes("[ElForm] unexpected width 0")) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
 
   // 初始化偏好设置
   await initPreferences({

@@ -1,4 +1,3 @@
-
 import { PLATFORM_TENANT_ID } from "@/constants";
 
 /**

@@ -3,7 +3,7 @@
     <ProPage ref="pageRef" :config="pageConfig" @add="handleAdd" @edit="handleEdit">
       <!-- 启用状态 -->
       <template #isEnabled="scope: any">
-        <ElTag size="small" effect="dark" round :color="enableBoolToColor(scope.row.isEnabled)">
+        <ElTag size="small" :type="scope.row.isEnabled ? 'success' : 'info'" effect="plain">
           {{ enableBoolToName(scope.row.isEnabled) }}
         </ElTag>
       </template>
@@ -26,8 +26,8 @@ import ProPage from "@/components/Pro/ProPage/index.vue";
 import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 import DictEntryDrawer from "./dict-entry-drawer.vue";
 
-import { enableBoolToColor, enableBoolToName, useDeleteDictEntry } from "@/api/composables";
-import { $t } from '@/core/i18n';
+import { enableBoolToName, useDeleteDictEntry } from "@/api/composables";
+import { $t } from "@/core/i18n";
 import { getEntryLabel, useDictViewStore } from "@/pages/app/system/dict/dict-view.state";
 
 const { mutateAsync: deleteDictEntry } = useDeleteDictEntry();
@@ -55,7 +55,6 @@ onMounted(() => {
 });
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -104,11 +103,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         prop: "numericValue",
         label: $t("pages.dict.numericValue"),
         minWidth: 95,
+        align: "right",
       },
       {
         prop: "sortOrder",
         label: $t("common.table.sortOrder"),
         width: 95,
+        align: "right",
       },
       {
         prop: "isEnabled",
@@ -123,8 +124,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

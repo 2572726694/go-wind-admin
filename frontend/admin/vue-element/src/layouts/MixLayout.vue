@@ -20,7 +20,7 @@
             <el-menu-item v-for="item in topMenuItems" :key="item.path" :index="item.path">
               <template v-if="item.meta">
                 <!-- eslint-disable-next-line vue/no-deprecated-filter -->
-                <MenuIcon :icon="item.meta.icon as string | undefined" />
+                <SvgIcon :icon="(item.meta.icon as string | undefined) || 'menu'" :size="18" />
                 <span v-if="item.meta.title" class="ml-1">
                   {{ translateRouteTitle(item.meta.title as string) }}
                 </span>
@@ -83,13 +83,14 @@
 <script setup lang="ts">
 import type { LocationQueryRaw, RouteRecordRaw } from "vue-router";
 import { useWindowSize } from "@vueuse/core";
-import { ElIcon } from "element-plus";
 
-import { useLayout } from "./useLayout";
 import { useAccessStore } from "@/stores";
 import { isExternal } from "@/utils";
-import { translateRouteTitle } from '@/core/i18n';
+import { translateRouteTitle } from "@/core/i18n";
 import { preferences, preferencesManager, usePreferences } from "@/core/preferences";
+import SvgIcon from "@/components/SvgIcon/index.vue";
+
+import variables from "@/styles/variables.module.scss";
 
 import BaseLayout from "./BaseLayout.vue";
 import LayoutLogo from "./components/LayoutLogo.vue";
@@ -98,30 +99,8 @@ import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebarItem from "./components/LayoutSidebarItem.vue";
 import SidebarControlPanel from "./components/SidebarControlPanel.vue";
-import variables from "@/styles/variables.module.scss";
 
-// 菜单图标渲染组件
-const MenuIcon = defineComponent({
-  props: { icon: String },
-  setup(props) {
-    const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
-    const iconName = computed(() => props.icon?.replace("el-icon-", ""));
-
-    return () => {
-      if (!props.icon) {
-        return h("div", { class: "i-svg:menu" });
-      }
-
-      // Element Plus 图标
-      if (isElIcon.value) {
-        return h(ElIcon, null, () => h(resolveComponent(iconName.value!)));
-      }
-
-      // SVG 图标
-      return h("div", { class: `i-svg:${props.icon}` });
-    };
-  },
-});
+import { useLayout } from "./useLayout";
 
 const route = useRoute();
 const router = useRouter();
@@ -235,7 +214,7 @@ const topMenuItems = computed(() => {
 // 左侧菜单激活路径
 const activeSideMenuPath = computed(() => {
   const { meta, path } = route;
-  return typeof meta?.activeMenu === "string" ? meta.activeMenu : path;
+  return typeof meta?.activePath === "string" ? meta.activePath : path;
 });
 
 // 解析左侧菜单路径
@@ -428,7 +407,7 @@ function toggleExpandOnHover() {
       min-width: 0;
       height: 100%;
       margin-left: 0;
-      overflow-y: auto;
+      overflow-y: hidden;
     }
   }
 }

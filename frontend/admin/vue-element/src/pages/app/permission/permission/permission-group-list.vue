@@ -35,7 +35,7 @@ import {
   statusToName,
   useDeletePermissionGroup,
 } from "@/api/composables";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 import { usePermissionViewStore } from "@/pages/app/permission/permission/permission-view.state";
 
 const { mutateAsync: deletePermissionGroup } = useDeletePermissionGroup();
@@ -45,7 +45,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     fields: [
       {
@@ -146,8 +145,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

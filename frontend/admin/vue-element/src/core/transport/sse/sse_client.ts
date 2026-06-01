@@ -269,4 +269,14 @@ export class SSEClient {
   setHeaders(headers: Record<string, string>): void {
     this.config.headers = { ...this.config.headers, ...headers };
   }
+
+  /**
+   * 关闭当前连接并使用新的 URL / headers 重新连接
+   * 适用于 token 刷新后需要携带新凭证的场景
+   * @param url 可选的新连接 URL，默认沿用配置中的 URL
+   */
+  reconnect(url?: string): void {
+    this.close();
+    this.connect(url);
+  }
 }

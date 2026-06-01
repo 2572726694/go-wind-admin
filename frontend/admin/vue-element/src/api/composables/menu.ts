@@ -17,7 +17,7 @@ import { makeUpdateMask, type PaginationQuery } from "@/core/transport/rest";
 import { listMenus, getMenu, createMenu, updateMenu, deleteMenu } from "@/api/service/menu";
 import { queryClient } from "@/plugins/vue-query";
 
-import { i18n } from '@/core/i18n';
+import { i18n } from "@/core/i18n";
 
 const t = i18n.global.t;
 
@@ -129,14 +129,12 @@ export const isLink = (type: string) => type === "LINK";
 export function travelMenuChild(nodes: Menu[] | undefined, parent: Menu): boolean {
   if (nodes === undefined) return false;
   if (parent.parentId === 0 || parent.parentId === undefined) {
-    if (parent?.meta?.title) parent.meta.title = t(parent?.meta?.title ?? "");
     nodes.push(parent);
     return true;
   }
   for (const node of nodes) {
     if (node === undefined) continue;
     if (node.id === parent.parentId) {
-      if (parent?.meta?.title) parent.meta.title = t(parent?.meta?.title ?? "");
       if (node.children !== undefined) node.children.push(parent);
       return true;
     }
@@ -146,18 +144,18 @@ export function travelMenuChild(nodes: Menu[] | undefined, parent: Menu): boolea
 }
 
 export function buildMenuTree(menus: Menu[]): Menu[] {
+  // 深拷贝，避免修改 vue-query 缓存中的原始数据
+  const cloned = structuredClone(menus);
   const tree: Menu[] = [];
-  for (const menu of menus) {
+  for (const menu of cloned) {
     if (!menu) continue;
     if (menu.parentId !== 0 && menu.parentId !== undefined) continue;
-    if (menu?.meta?.title) menu.meta.title = t(menu?.meta?.title ?? "");
     tree.push(menu);
   }
-  for (const menu of menus) {
+  for (const menu of cloned) {
     if (!menu) continue;
     if (menu.parentId === 0 || menu.parentId === undefined) continue;
     if (travelMenuChild(tree, menu)) continue;
-    if (menu?.meta?.title) menu.meta.title = t(menu?.meta?.title ?? "");
     tree.push(menu);
   }
   return tree;

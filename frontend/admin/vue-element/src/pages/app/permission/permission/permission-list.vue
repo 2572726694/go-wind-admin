@@ -1,6 +1,12 @@
 <template>
   <div class="app-container h-full flex flex-1 flex-col">
-    <ProPage ref="pageRef" :config="pageConfig" @add="handleAdd" @edit="handleEdit" @toolbar="handleToolbar">
+    <ProPage
+      ref="pageRef"
+      :config="pageConfig"
+      @add="handleAdd"
+      @edit="handleEdit"
+      @toolbar="handleToolbar"
+    >
       <!-- 状态 -->
       <template #status="scope: any">
         <ElTag size="small" effect="dark" round :color="statusToColor(scope.row.status)">
@@ -23,7 +29,7 @@ import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 import PermissionDrawer from "./permission-drawer.vue";
 
 import { statusList, statusToColor, statusToName, useDeletePermission } from "@/api/composables";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 import { usePermissionViewStore } from "@/pages/app/permission/permission/permission-view.state";
 
 const { mutateAsync: deletePermission } = useDeletePermission();
@@ -51,7 +57,6 @@ onMounted(() => {
 });
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     fields: [
       {
@@ -125,8 +130,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

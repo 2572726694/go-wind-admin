@@ -3,7 +3,7 @@
     <ProPage ref="pageRef" :config="pageConfig" @add="handleAdd" @edit="handleEdit">
       <!-- 状态 -->
       <template #isEnabled="scope: any">
-        <ElTag size="small" effect="dark" round :color="enableBoolToColor(scope.row.isEnabled)">
+        <ElTag size="small" :type="scope.row.isEnabled ? 'success' : 'info'" effect="plain">
           {{ enableBoolToName(scope.row.isEnabled) }}
         </ElTag>
       </template>
@@ -22,13 +22,12 @@ import ProPage from "@/components/Pro/ProPage/index.vue";
 import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 
 import {
-  enableBoolToColor,
   enableBoolToName,
   fetchListMessageCategories,
   useDeleteMessageCategory,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 import InternalMessageCategoryDrawer from "./internal-message-category-drawer.vue";
 
@@ -38,7 +37,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -79,7 +77,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
     columns: [
       { prop: "name", label: $t("pages.internal_message_category.name"), minWidth: 150 },
       { prop: "code", label: $t("pages.internal_message_category.code"), minWidth: 150 },
-      { prop: "sortOrder", label: $t("common.table.sortOrder"), width: 70 },
+      { prop: "sortOrder", label: $t("common.table.sortOrder"), width: 70, align: "right" },
       {
         prop: "isEnabled",
         label: $t("common.table.status"),
@@ -101,8 +99,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

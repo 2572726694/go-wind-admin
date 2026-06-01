@@ -8,11 +8,7 @@
       :class="formClass"
     >
       <template v-for="(field, index) in fields" :key="field.field">
-        <ElFormItem
-          v-show="!isFieldHidden(index)"
-          :label="field.label"
-          :prop="String(field.field)"
-        >
+        <ElFormItem v-show="!isFieldHidden(index)" :label="field.label" :prop="String(field.field)">
           <template #label>
             <span class="flex items-center gap-1">
               {{ field.label }}
@@ -54,11 +50,7 @@
             <template v-if="['select', 'radio', 'checkbox'].includes(field.type ?? '')">
               <component
                 :is="
-                  field.type === 'select'
-                    ? ElOption
-                    : field.type === 'radio'
-                      ? ElRadio
-                      : ElCheckbox
+                  field.type === 'select' ? ElOption : field.type === 'radio' ? ElRadio : ElCheckbox
                 "
                 v-for="opt in field.options"
                 :key="opt.value"
@@ -127,7 +119,7 @@ import {
 } from "element-plus";
 import { Search, Refresh, ArrowUp, ArrowDown, QuestionFilled } from "@element-plus/icons-vue";
 import InputTag from "@/components/InputTag/index.vue";
-import { useI18n } from '@/core/i18n';
+import { useI18n } from "@/core/i18n";
 import type { ProSearchConfig, ProSearchEmits } from "./types";
 
 defineOptions({ inheritAttrs: false });
@@ -169,7 +161,7 @@ const formAttrs = computed<Record<string, any>>(() => ({
   ...props.form,
 }));
 
-// 按钮区域 class（参考 Vben rowEnd 模式：按钮在 grid 行末对齐）
+// 按钮区域 class
 const actionClass = computed(() => {
   const cls = ["pro-search__actions"];
   if (props.grid) {
@@ -178,7 +170,7 @@ const actionClass = computed(() => {
   return cls;
 });
 
-// 表单 class（响应式 Grid 布局，参考 Vben）
+// 表单 class
 const formClass = computed(() => {
   if (props.grid) {
     return "pro-search--grid";
@@ -400,6 +392,54 @@ defineExpose({
   margin-bottom: 0;
 }
 
+// === 按钮统一规范 ===
+:deep(.pro-search__actions) {
+  .el-button {
+    height: 32px;
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    // 搜索按钮（primary）—— 标准 Element Plus 主色
+    &.el-button--primary {
+      background-color: var(--el-color-primary);
+      border-color: var(--el-color-primary);
+      color: #fff;
+
+      &:hover,
+      &:focus {
+        background-color: var(--el-color-primary-light-3);
+        border-color: var(--el-color-primary-light-3);
+        color: #fff;
+      }
+
+      &:active {
+        background-color: var(--el-color-primary-dark-2);
+        border-color: var(--el-color-primary-dark-2);
+        color: #fff;
+      }
+    }
+
+    // 重置按钮（default）—— 中性灰
+    // stylelint-disable-next-line selector-max-universal
+    &:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.el-button--info) {
+      background-color: rgba(0, 0, 0, 0.04);
+      border-color: #dcdfe6;
+      color: var(--el-text-color-regular);
+
+      &:hover,
+      &:focus {
+        background-color: rgba(0, 0, 0, 0.08);
+        border-color: #c0c4cc;
+        color: var(--el-text-color-primary);
+      }
+    }
+  }
+}
+
 // 表单项标签样式优化
 :deep(.el-form-item__label) {
   white-space: nowrap;
@@ -411,4 +451,8 @@ defineExpose({
 :deep(.el-input-number .el-input__inner) {
   text-align: left;
 }
+
+// ======== 暗色模式适配 ========
+// 暗色模式按钮样式已在全局 _dark-mode.scss 中统一处理
+// 这里不需要额外的 scoped 覆盖，避免样式冲突
 </style>

@@ -4,14 +4,14 @@
       class="command-palette-trigger"
       role="button"
       tabindex="0"
-      aria-label="打开搜索面板"
+      :aria-label="$t('common.commandPalette.openSearch')"
       @click="open"
       @keydown.enter.prevent="open"
       @keydown.space.prevent="open"
     >
       <div class="command-palette-trigger__left">
-        <div class="i-svg:search" />
-        <span class="command-palette-trigger__text">搜索菜单</span>
+        <SvgIcon icon="search" />
+        <span class="command-palette-trigger__text">{{ $t('common.commandPalette.searchMenu') }}</span>
       </div>
       <kbd class="command-palette-trigger__kbd">Ctrl K</kbd>
     </div>
@@ -28,28 +28,22 @@
           ref="inputRef"
           v-model="keyword"
           class="command-palette-input"
-          placeholder="搜索菜单"
+          :placeholder="$t('common.commandPalette.searchMenu')"
           @input="onSearch"
           @keydown="handleInputKeydown"
         >
           <template #prefix>
-            <div class="i-svg:search" />
+            <SvgIcon icon="search" />
           </template>
           <template #suffix>
             <div class="command-palette-input__suffix">
-              <div
-                class="i-svg:close"
-                role="button"
-                tabindex="0"
-                aria-label="关闭"
-                @click="close"
-              />
+              <SvgIcon icon="close" role="button" tabindex="0" :aria-label="$t('common.commandPalette.close')" @click="close" />
             </div>
           </template>
         </el-input>
 
         <div class="command-palette-results">
-          <div v-if="displayList.length === 0" class="command-palette-empty">没有搜索历史</div>
+          <div v-if="displayList.length === 0" class="command-palette-empty">{{ $t('common.commandPalette.noHistory') }}</div>
 
           <ul v-else class="command-palette-list">
             <li
@@ -67,17 +61,17 @@
 
         <div class="command-palette-hints">
           <div class="command-palette-hint">
-            <div class="command-palette-hint__key"><div class="i-svg:up" /></div>
-            <div class="command-palette-hint__key"><div class="i-svg:down" /></div>
-            <span class="command-palette-hint__text">切换</span>
+            <div class="command-palette-hint__key"><SvgIcon icon="up" /></div>
+            <div class="command-palette-hint__key"><SvgIcon icon="down" /></div>
+            <span class="command-palette-hint__text">{{ $t('common.commandPalette.switch') }}</span>
           </div>
           <div class="command-palette-hint">
-            <div class="command-palette-hint__key"><div class="i-svg:enter" /></div>
-            <span class="command-palette-hint__text">选择</span>
+            <div class="command-palette-hint__key"><SvgIcon icon="enter" /></div>
+            <span class="command-palette-hint__text">{{ $t('common.commandPalette.select') }}</span>
           </div>
           <div class="command-palette-hint">
-            <div class="command-palette-hint__key"><div class="i-svg:esc" /></div>
-            <span class="command-palette-hint__text">关闭</span>
+            <div class="command-palette-hint__key"><SvgIcon icon="esc" /></div>
+            <span class="command-palette-hint__text">{{ $t('common.commandPalette.close') }}</span>
           </div>
         </div>
       </div>
@@ -87,6 +81,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 import { useCommandPalette } from "./useCommandPalette";
 
 const {
@@ -189,6 +184,7 @@ const handleInputKeydown: (evt: KeyboardEvent | Event) => any = (evt) => {
 
 .command-palette-trigger:hover {
   border-color: var(--el-border-color);
+  background: var(--el-fill-color-lighter);
 }
 
 .command-palette-dialog {

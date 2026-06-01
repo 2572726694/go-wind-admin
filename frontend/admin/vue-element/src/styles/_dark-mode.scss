@@ -7,7 +7,6 @@
  * - 使用 CSS 变量实现，便于维护和调整
  */
 
-@use 'sass:color';
 
 html.dark {
   // ============================================
@@ -25,17 +24,18 @@ html.dark {
   --dark-row-even: #161A23;         // 偶数行背景(用深灰替代纯白,既保留奇偶区分,又完全融入暗黑体系)
   --dark-header: #14171C;           // 表头背景(微提亮,和数据行层级更清晰)
     
-  --dark-text-primary: #E5EAF3;     // 表头主文本/偶数行主文本（提升表头可读性，满足 WCAG AA 标准）
-  --dark-text-secondary: #9099A7;   // 占位符文本/辅助文本（提升弱光环境可读性，不抢主文本焦点）
-  --dark-text-placeholder: #9099A7; // 占位符专用色
-  --dark-text-data: #C9CDD4;        // 奇数行主文本（核心数据清晰可见，辅助文本不抢焦点）
+  // 文本色层级体系（背景越深，文本越亮）
+  --dark-text-primary: #ffffff;       // 一级文本：表头主文本/选中菜单项/核心标题（纯白，最强对比）
+  --dark-text-secondary: #b3b3b3;     // 二级文本：未选中菜单项/面包屑非当前页/辅助说明（亮灰，WCAG 4.5:1）
+  --dark-text-placeholder: #8c8c8c;   // 三级文本：占位符/时间戳/辅助说明（中灰，辅助信息）
+  --dark-text-data: #d4d4d4;          // 数据文本：表格数据行主体（中性灰，清晰可读不抢焦点）
 
-  // 2. 色彩体系升级，增加精致感
-  --dark-primary: #409EFF;          // 主色：亮蓝（输入框聚焦态、下拉框高亮态）
-  --dark-secondary: #36CFC9;        // 辅助色：青绿
-  --dark-accent: #F7BA1E;           // 强调色：暖黄
-  --dark-error: #F53F3F;            // 错误态：高饱和红
-  --dark-success: #00B42A;          // 成功态：高饱和绿
+  // 2. 色彩体系（跟随用户主题色）
+  --dark-primary: var(--el-color-primary);       // 主色（跟随主题）
+  --dark-secondary: #36CFC9;                     // 辅助色：青绿
+  --dark-accent: var(--el-color-warning);         // 强调色（跟随主题）
+  --dark-error: var(--el-color-danger);           // 错误态（跟随主题）
+  --dark-success: var(--el-color-success);        // 成功态（跟随主题）
 
   // 3. Element Plus 组件变量覆盖
   --el-bg-color: var(--dark-bg-primary);
@@ -104,8 +104,7 @@ html.dark {
           border-color: var(--dark-primary) !important;
 
           &:hover {
-            background-color: color.adjust(#409EFF, $lightness: 10%) !important;
-            border-color: color.adjust(#409EFF, $lightness: 10%) !important;
+            filter: brightness(1.15);
           }
         }
 
@@ -128,7 +127,7 @@ html.dark {
         color: var(--dark-primary) !important;
 
         &:hover {
-          color: color.adjust(#409EFF, $lightness: 10%) !important;
+          filter: brightness(1.15);
         }
       }
     }
@@ -201,11 +200,11 @@ html.dark {
         background-color: var(--dark-bg-hover) !important;
       }
   
-      // 聚焦态：边框用主色高亮，背景色微亮，给用户明确的操作反馈
+      // 聚焦态：边框用主色高亮 + 外发光，给用户明确的操作反馈
       &.is-focus {
         border-color: var(--dark-primary) !important;
-        box-shadow: 0 0 0 1px var(--dark-primary) inset, 
-                    inset 0 1px 2px rgba(64, 158, 255, 0.1) !important;
+        box-shadow: 0 0 0 1px var(--dark-primary) inset,
+                    0 0 0 3px rgba(22, 93, 255, 0.2) !important;
         background-color: var(--dark-bg-hover) !important;
       }
   
@@ -264,8 +263,8 @@ html.dark {
     &.is-focus .el-input__wrapper,
     .el-input__wrapper.is-focus {
       border-color: var(--dark-primary) !important;
-      box-shadow: 0 0 0 1px var(--dark-primary) inset, 
-                  inset 0 1px 2px rgba(64, 158, 255, 0.1) !important;
+      box-shadow: 0 0 0 1px var(--dark-primary) inset,
+                  0 0 0 3px var(--el-color-primary-light-8) !important;
       background-color: var(--dark-bg-hover) !important;
     }
   }
@@ -296,7 +295,7 @@ html.dark {
 
       &.selected {
         color: var(--dark-primary) !important;
-        background-color: rgba(64, 158, 255, 0.15) !important;
+        background-color: var(--el-color-primary-light-9) !important;
         font-weight: 500 !important;
       }
     }
@@ -331,8 +330,8 @@ html.dark {
     }
   }
 
-  // 按钮样式优化
-  .el-button {
+  // 按钮样式优化（Pro 组件区域单独处理，不覆盖其柔和风格）
+  .el-button:not(.pro-toolbar .el-button):not(.pro-search__actions .el-button) {
     // 主按钮
     &.el-button--primary {
       background-color: var(--dark-primary) !important;
@@ -341,8 +340,7 @@ html.dark {
 
       // hover 态：亮度微增，强化主操作的交互感
       &:hover {
-        background-color: color.adjust(#409EFF, $lightness: 10%) !important;
-        border-color: color.adjust(#409EFF, $lightness: 10%) !important;
+        filter: brightness(1.15);
       }
     }
 
@@ -353,8 +351,7 @@ html.dark {
       color: #fff !important;
 
       &:hover {
-        background-color: color.adjust(#00B42A, $lightness: 10%) !important;
-        border-color: color.adjust(#00B42A, $lightness: 10%) !important;
+        filter: brightness(1.15);
       }
     }
 
@@ -365,8 +362,7 @@ html.dark {
       color: #fff !important;
 
       &:hover {
-        background-color: color.adjust(#F7BA1E, $lightness: 10%) !important;
-        border-color: color.adjust(#F7BA1E, $lightness: 10%) !important;
+        filter: brightness(1.15);
       }
     }
 
@@ -377,8 +373,60 @@ html.dark {
       color: #fff !important;
 
       &:hover {
-        background-color: color.adjust(#F53F3F, $lightness: 10%) !important;
-        border-color: color.adjust(#F53F3F, $lightness: 10%) !important;
+        filter: brightness(1.15);
+      }
+    }
+  }
+
+  // ============================================
+  // Pro 搜索区域按钮（ProSearch）
+  // ============================================
+  .pro-search__actions .el-button {
+    height: 32px !important;
+    border-radius: 6px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+
+    // 重置/default 按钮 — 使用亮色模式相同的设计语言，颜色适配暗色背景
+    // stylelint-disable-next-line selector-max-universal
+    &:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.el-button--info) {
+      background-color: rgba(255, 255, 255, 0.06) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: var(--el-text-color-regular) !important;
+
+      &:hover,
+      &:focus {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        color: var(--el-text-color-primary) !important;
+      }
+    }
+  }
+
+  // ============================================
+  // Pro 工具栏按钮（ProToolbar）
+  // ============================================
+  .pro-toolbar .toolbar-left .el-button,
+  .pro-toolbar .toolbar-right .el-button {
+    height: 32px !important;
+    border-radius: 6px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+
+    // 重置/default 按钮 — 使用亮色模式相同的设计语言，颜色适配暗色背景
+    // stylelint-disable-next-line selector-max-universal
+    &:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.el-button--info):not(.is-circle) {
+      background-color: rgba(255, 255, 255, 0.06) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: var(--el-text-color-regular) !important;
+
+      &:hover,
+      &:focus {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        color: var(--el-text-color-primary) !important;
       }
     }
   }
@@ -389,28 +437,35 @@ html.dark {
 
   // 表格容器
   .el-table {
-    background-color: var(--dark-bg-table) !important; // 表格容器背景比页面主背景亮 2 个灰度层级
-    border-color: var(--dark-border) !important;       // 加深表格边框
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important; // 内阴影，强化模块边界
-
+    // 内容区背景色，和整体深色主题对齐
+    --el-table-bg-color: #1a1d24 !important;
+    --el-table-tr-bg-color: #1a1d24 !important;
+    // 表头背景色：比内容区深2个色阶，比页面背景浅1个色阶，层级立刻出来
+    --el-table-header-bg-color: #12151a !important;
+    // 表头文字：加粗、提高对比度，标题感拉满
+    --el-table-header-text-color: #e5eaf3 !important;
+    // 表头分割线：极细的深色线条，强化边界，不突兀
+    --el-table-header-border-color: #0e1014 !important;
+    // 内容区 hover 态：和表头形成柔和过渡
+    --el-table-row-hover-bg-color: #21252d !important;
     --el-table-border-color: var(--dark-border) !important;
-    --el-table-bg-color: var(--dark-bg-table) !important;
-    --el-table-tr-bg-color: var(--dark-bg-table) !important;
-    --el-table-header-bg-color: var(--dark-header) !important; // 表头背景色微亮，和数据行形成明显区分
-    --el-table-row-hover-bg-color: var(--dark-bg-hover) !important;
     --el-table-text-color: var(--dark-text-data) !important;
-    --el-table-header-text-color: var(--dark-text-primary) !important;
+
+    background-color: #1a1d24 !important;
+    border-color: var(--dark-border) !important;
 
     // 表头样式优化：固定表头，增加字重，用高亮色突出
     .el-table__header-wrapper {
-      background-color: var(--dark-header) !important; // 滚动表格时表头清晰可见
-      
+      background-color: #12151a !important;
+
       th.el-table__cell {
-        background-color: var(--dark-header) !important;
-        color: var(--dark-text-primary) !important; // 提升表头可读性，满足 WCAG AA 标准
+        background-color: #12151a !important;
+        color: #e5eaf3 !important;
         font-weight: 600 !important;
         font-size: 14px !important;
-        border-color: var(--dark-border) !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        border-bottom: 1px solid #0e1014 !important;
       }
     }
 
@@ -419,48 +474,51 @@ html.dark {
       .el-table__row {
         // 奇数行背景
         &:nth-child(odd) {
-          background-color: var(--dark-row-odd) !important;
-          
+          background-color: #1a1d24 !important;
+
           td {
-            color: var(--dark-text-data) !important; // 奇数行主文本：核心数据清晰可见
-            background-color: var(--dark-row-odd) !important;
-            border-color: var(--dark-border) !important; // 加深边框，弱光环境也能看清列边界
+            color: var(--dark-text-data) !important;
+            background-color: #1a1d24 !important;
+            border-color: var(--dark-border) !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
           }
         }
 
         // 偶数行背景
         &:nth-child(even) {
-          background-color: var(--dark-row-even) !important;
-          
+          background-color: #1e2128 !important;
+
           td {
-            color: var(--dark-text-primary) !important; // 偶数行主文本：保持高对比度，和整体文字色统一
-            background-color: var(--dark-row-even) !important;
+            color: var(--dark-text-primary) !important;
+            background-color: #1e2128 !important;
             border-color: var(--dark-border) !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
           }
         }
 
-        // hover 态：背景色微亮，给用户明确的交互反馈
+        // hover 态
         &:hover {
-          background-color: var(--dark-bg-hover) !important;
-          
+          background-color: #21252d !important;
+
           > td {
-            background-color: var(--dark-bg-hover) !important;
+            background-color: #21252d !important;
             color: var(--dark-text-primary) !important;
           }
         }
 
-        // 选中行：背景色微亮 + 边框高亮，方便用户识别选中内容
+        // 选中行
         &.current-row {
-          background-color: var(--dark-bg-hover) !important;
+          background-color: #21252d !important;
           outline: 1px solid var(--dark-primary) !important;
-          
+
           > td {
-            background-color: var(--dark-bg-hover) !important;
+            background-color: #21252d !important;
             color: var(--dark-text-primary) !important;
           }
         }
 
-        // 辅助文本（创建时间、排序等）：统一调整，在奇偶行都能清晰可见，又不抢主文本的焦点
         td.el-table__cell--description {
           color: var(--dark-text-secondary) !important;
         }
@@ -470,24 +528,24 @@ html.dark {
     // 固定列样式
     .el-table__fixed,
     .el-table__fixed-right {
-      background-color: var(--dark-bg-table) !important;
+      background-color: #1a1d24 !important;
       box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3) !important;
 
       .el-table__row {
         &:nth-child(odd) > td {
-          background-color: var(--dark-row-odd) !important;
+          background-color: #1a1d24 !important;
         }
 
         &:nth-child(even) > td {
-          background-color: var(--dark-row-even) !important;
+          background-color: #1e2128 !important;
         }
 
         &:hover > td {
-          background-color: var(--dark-bg-hover) !important;
+          background-color: #21252d !important;
         }
 
         &.current-row > td {
-          background-color: var(--dark-bg-hover) !important;
+          background-color: #21252d !important;
         }
       }
     }
@@ -496,7 +554,7 @@ html.dark {
   // 分页器优化
   .pagination-container {
     background-color: var(--dark-bg-table) !important; // 和表格容器统一，避免模块割裂
-    padding: 16px 0 !important;
+    padding: 12px 0 !important;
   }
 
   .el-pagination {
@@ -568,44 +626,56 @@ html.dark {
         color: var(--dark-error) !important;
 
         &:hover {
-          color: color.adjust(#F53F3F, $lightness: 10%) !important;
+          filter: brightness(1.15);
         }
       }
     }
   }
 
-  // 状态标签颜色优化（开启/关闭/禁用的色彩区分更明显，在奇偶行都能保持高辨识度）
+  // 状态标签颜色优化
+  // Tag 和操作按钮视觉分离：Tag 更扁更柔、无交互感；按钮有边框有 hover
+  // 覆盖所有 effect（light/plain/dark），确保暗色模式下统一为半透明背景 + 亮色文字
   .el-tag {
-    // 成功态（开启）
+    border-radius: 3px !important; // 暗黑模式再小一点，和按钮的 6px 明显区分
+    cursor: default !important; // 不可点击，和按钮区分
+
+    // 主色调（蓝）
+    &.el-tag--primary {
+      background-color: rgba(64, 158, 255, 0.15) !important;
+      border-color: transparent !important;
+      color: #409EFF !important;
+    }
+
+    // 成功态（绿）
     &.el-tag--success {
-      background-color: rgba(0, 180, 42, 0.2) !important;
-      border-color: rgba(0, 180, 42, 0.4) !important;
-      color: #52c41a !important; // 在深色背景上更醒目
+      background-color: rgba(103, 194, 58, 0.15) !important;
+      border-color: transparent !important;
+      color: #67C23A !important;
     }
 
-    // 警告态（关闭）
+    // 警告态（橙）
     &.el-tag--warning {
-      background-color: rgba(247, 186, 30, 0.2) !important;
-      border-color: rgba(247, 186, 30, 0.4) !important;
-      color: #ffc53d !important;
+      background-color: rgba(230, 162, 60, 0.15) !important;
+      border-color: transparent !important;
+      color: #E6A23C !important;
     }
 
-    // 危险态（禁用）
+    // 危险态（红）
     &.el-tag--danger {
-      background-color: rgba(245, 63, 63, 0.2) !important;
-      border-color: rgba(245, 63, 63, 0.4) !important;
-      color: #ff4d4f !important;
+      background-color: rgba(245, 108, 108, 0.15) !important;
+      border-color: transparent !important;
+      color: #F56C6C !important;
     }
 
-    // 信息态（普通）
+    // 信息态（灰）
     &.el-tag--info {
-      background-color: rgba(144, 153, 167, 0.2) !important;
-      border-color: rgba(144, 153, 167, 0.4) !important;
-      color: #9099A7 !important;
+      background-color: rgba(144, 147, 153, 0.15) !important;
+      border-color: transparent !important;
+      color: #909399 !important;
     }
   }
 
-  // 下拉框展开态优化（和暗黑模系统一，不会出现"白底白字"的问题）
+  // ---- 下拉框展开态优化（和暗黑模系统一） ----
   .el-select-dropdown {
     background-color: var(--dark-bg-hover) !important;
     border-color: var(--dark-border) !important;
@@ -621,7 +691,7 @@ html.dark {
 
       &.selected {
         color: var(--dark-primary) !important;
-        background-color: rgba(64, 158, 255, 0.15) !important;
+        background-color: var(--el-color-primary-light-9) !important;
         font-weight: 500 !important;
       }
     }

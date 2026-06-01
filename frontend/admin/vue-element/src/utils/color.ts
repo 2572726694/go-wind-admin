@@ -50,13 +50,13 @@ export function hexToHsl(hex: string): string {
   const min = Math.min(rn, gn, bn);
   const l = (max + min) / 2;
 
+  let h: number;
   if (max === min) {
     return `0 0% ${Math.round(l * 100)}%`;
   }
 
   const d = max - min;
   const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = 0;
 
   if (max === rn) {
     h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
@@ -130,9 +130,7 @@ export function hexToHslString(hex: string): string {
   const cmin = Math.min(r, g, b);
   const cmax = Math.max(r, g, b);
   const delta = cmax - cmin;
-  let h = 0,
-    s = 0,
-    l = 0;
+  let h: number, s: number, l: number;
   if (delta === 0) h = 0;
   else if (cmax === r) h = ((g - b) / delta) % 6;
   else if (cmax === g) h = (b - r) / delta + 2;

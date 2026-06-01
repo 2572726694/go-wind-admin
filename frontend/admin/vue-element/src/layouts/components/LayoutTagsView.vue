@@ -247,8 +247,9 @@
 import { useRoute, useRouter, type RouteRecordRaw } from "vue-router";
 import { resolve } from "path-browserify";
 import { useSortable, type Sortable } from "@/composables/use-sortable";
-import { translateRouteTitle } from '@/core/i18n';
-import { useAccessStore, useTagsViewStore } from "@/stores";
+import { translateRouteTitle } from "@/core/i18n";
+import { useAccessStore } from "@/stores";
+import { useTagsViewStore, type TabState } from "./useTagsViewStore";
 import { preferences, updatePreferences } from "@/core/preferences";
 
 import {
@@ -265,32 +266,15 @@ import {
   ScaleToOriginal,
   SemiSelect,
 } from "@element-plus/icons-vue";
-import { ElIcon } from "element-plus";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
-// 标签图标渲染组件（与侧边栏 MenuIcon 逻辑一致）
+// 标签图标渲染组件（使用统一 SvgIcon 组件）
 const TabIcon = defineComponent({
   props: { icon: { type: String, default: "" } },
   setup(props) {
-    const isLucideIcon = computed(() => props.icon?.startsWith("lucide:"));
-    const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
-    const lucideName = computed(() => props.icon?.replace("lucide:", ""));
-    const iconName = computed(() => props.icon?.replace("el-icon-", ""));
-
     return () => {
       if (!props.icon) return null;
-
-      // Lucide 图标（通过 UnoCSS）
-      if (isLucideIcon.value) {
-        return h("div", { class: `i-lucide:${lucideName.value}` });
-      }
-
-      // Element Plus 图标
-      if (isElIcon.value) {
-        return h(ElIcon, { size: 14 }, () => h(resolveComponent(iconName.value!)));
-      }
-
-      // SVG 图标（通过 UnoCSS）
-      return h("div", { class: `i-svg:${props.icon}` });
+      return h(SvgIcon, { icon: props.icon, size: 14 });
     };
   },
 });
@@ -322,6 +306,9 @@ const tabHeight = computed(() => preferences.tabbar.height || 38);
 // 注入内容区刷新状态
 const contentRefreshing = inject<Ref<boolean>>("contentRefreshing", ref(false));
 
+// 注入刷新 key
+const contentRefreshKey = inject<Ref<number>>("contentRefreshKey", ref(0));
+
 // 最大化状态
 const isMaximized = ref(false);
 
@@ -343,33 +330,33 @@ watch(
 );
 
 // 当前选中的标签
-const selectedTag = ref<TagView | null>(null);
+const selectedTag = ref<TabState | null>(null);
 
 // 右键菜单对应的标签
 const contextMenuTag = computed(() => selectedTag.value);
 
 // 当前路由对应的标签（下拉菜单上下文）
 const activeTag = computed(() => {
-  return visitedViews.value.find((v: TagView) => v.path === route.path) || null;
+  return visitedViews.value.find((v: TabState) => v.path === route.path) || null;
 });
 
 /** 可关闭的标签数量（非固定） */
-const closableCount = computed(() => visitedViews.value.filter((v: TagView) => !v.affix).length);
+const closableCount = computed(() => visitedViews.value.filter((v: TabState) => !v.affix).length);
 
 /** 是否没有可关闭的左侧标签 */
-function isFirstViewOf(tag: TagView | null): boolean {
+function isFirstViewOf(tag: TabState | null): boolean {
   if (!tag) return true;
-  const idx = visitedViews.value.findIndex((v: TagView) => v.fullPath === tag.fullPath);
+  const idx = visitedViews.value.findIndex((v: TabState) => v.fullPath === tag.fullPath);
   if (idx <= 0) return true;
-  return visitedViews.value.slice(0, idx).every((v: TagView) => v.affix);
+  return visitedViews.value.slice(0, idx).every((v: TabState) => v.affix);
 }
 
 /** 是否没有可关闭的右侧标签 */
-function isLastViewOf(tag: TagView | null): boolean {
+function isLastViewOf(tag: TabState | null): boolean {
   if (!tag) return true;
-  const idx = visitedViews.value.findIndex((v: TagView) => v.fullPath === tag.fullPath);
+  const idx = visitedViews.value.findIndex((v: TabState) => v.fullPath === tag.fullPath);
   if (idx < 0 || idx >= visitedViews.value.length - 1) return true;
-  return visitedViews.value.slice(idx + 1).every((v: TagView) => v.affix);
+  return visitedViews.value.slice(idx + 1).every((v: TabState) => v.affix);
 }
 
 // 右键菜单状态
@@ -387,14 +374,14 @@ const scrollIsAtLeft = ref(true);
 const scrollIsAtRight = ref(false);
 
 // 判断标签是否激活
-const isActive = (tag: TagView) => {
+const isActive = (tag: TabState) => {
   return tag.path === route.path;
 };
 
 // 路由映射缓存
 const routePathMap = computed(() => {
-  const map = new Map<string, TagView>();
-  visitedViews.value.forEach((tag: { path: string }) => {
+  const map = new Map<string, TabState>();
+  visitedViews.value.forEach((tag: TabState) => {
     map.set(tag.path, tag);
   });
   return map;
@@ -450,8 +437,8 @@ function scrollToActiveTab() {
 /**
  * 递归提取固定标签
  */
-const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] => {
-  const affixTags: TagView[] = [];
+const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TabState[] => {
+  const affixTags: TabState[] = [];
 
   const traverse = (routeList: RouteRecordRaw[], currentBasePath: string) => {
     routeList.forEach((r) => {
@@ -461,10 +448,10 @@ const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] =
           path: fullPath,
           fullPath,
           name: String(r.name || ""),
-          title: r.meta.title || "no-name",
+          title: (r.meta.title as string) || "no-name",
           icon: r.meta.icon as string | undefined,
           affix: true,
-          keepAlive: r.meta.keepAlive || false,
+          keepAlive: (r.meta.keepAlive as boolean) || false,
         });
       }
       if (r.children?.length) {
@@ -490,12 +477,12 @@ const addCurrentTag = () => {
   if (!route.meta?.title) return;
   tagsViewStore.addView({
     name: route.name as string,
-    title: route.meta.title,
+    title: route.meta.title as string,
     path: route.path,
     fullPath: route.fullPath,
     icon: route.meta.icon as string | undefined,
-    affix: route.meta.affix || false,
-    keepAlive: route.meta.keepAlive || false,
+    affix: (route.meta.affix as boolean) || false,
+    keepAlive: (route.meta.keepAlive as boolean) || false,
     query: route.query,
   });
 };
@@ -506,32 +493,32 @@ const updateCurrentTag = () => {
     if (currentTag && currentTag.fullPath !== route.fullPath) {
       tagsViewStore.updateVisitedView({
         name: route.name as string,
-        title: route.meta?.title || "",
+        title: (route.meta?.title as string) || "",
         path: route.path,
         fullPath: route.fullPath,
         icon: route.meta?.icon as string | undefined,
-        affix: route.meta?.affix || false,
-        keepAlive: route.meta?.keepAlive || false,
+        affix: (route.meta?.affix as boolean) || false,
+        keepAlive: (route.meta?.keepAlive as boolean) || false,
         query: route.query,
       });
     }
   });
 };
 
-const handleTabClick = (tag: TagView) => {
+const handleTabClick = (tag: TabState) => {
   router.push({
     path: tag.fullPath,
     query: tag.query,
   });
 };
 
-const handleMiddleClick = (tag: TagView) => {
+const handleMiddleClick = (tag: TabState) => {
   if (!tag.affix) {
     closeSelectedTag(tag);
   }
 };
 
-const openContextMenu = (tag: TagView, event: MouseEvent) => {
+const openContextMenu = (tag: TabState, event: MouseEvent) => {
   contextMenu.x = event.clientX;
   contextMenu.y = event.clientY;
   contextMenu.visible = true;
@@ -542,18 +529,18 @@ const closeContextMenu = () => {
   contextMenu.visible = false;
 };
 
-const refreshSelectedTag = (tag: TagView | null) => {
+const refreshSelectedTag = (tag: TabState | null) => {
   if (!tag) return;
   closeContextMenu();
   contentRefreshing.value = true;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      contentRefreshing.value = false;
-    });
+  // 递增 key 强制组件重建（router-view 保持挂载，不触发 ResizeObserver 错误）
+  contentRefreshKey.value++;
+  nextTick(() => {
+    contentRefreshing.value = false;
   });
 };
 
-const closeSelectedTag = (tag: TagView | null) => {
+const closeSelectedTag = (tag: TabState | null) => {
   if (!tag || tag.affix) return;
   closeContextMenu();
   tagsViewStore.delView(tag).then((result: any) => {
@@ -563,31 +550,31 @@ const closeSelectedTag = (tag: TagView | null) => {
   });
 };
 
-const closeLeftTags = (tag?: TagView | null) => {
+const closeLeftTags = (tag?: TabState | null) => {
   const target = tag ?? selectedTag.value;
   if (!target) return;
   closeContextMenu();
   tagsViewStore.delLeftViews(target).then((result: any) => {
-    const hasCurrentRoute = result.visitedViews.some((item: TagView) => item.path === route.path);
+    const hasCurrentRoute = result.visitedViews.some((item: TabState) => item.path === route.path);
     if (!hasCurrentRoute) {
       tagsViewStore.toLastView(result.visitedViews);
     }
   });
 };
 
-const closeRightTags = (tag?: TagView | null) => {
+const closeRightTags = (tag?: TabState | null) => {
   const target = tag ?? selectedTag.value;
   if (!target) return;
   closeContextMenu();
   tagsViewStore.delRightViews(target).then((result: any) => {
-    const hasCurrentRoute = result.visitedViews.some((item: TagView) => item.path === route.path);
+    const hasCurrentRoute = result.visitedViews.some((item: TabState) => item.path === route.path);
     if (!hasCurrentRoute) {
       tagsViewStore.toLastView(result.visitedViews);
     }
   });
 };
 
-const closeOtherTags = (tag?: TagView | null) => {
+const closeOtherTags = (tag?: TabState | null) => {
   const target = tag ?? selectedTag.value;
   if (!target) return;
   closeContextMenu();
@@ -597,7 +584,7 @@ const closeOtherTags = (tag?: TagView | null) => {
   });
 };
 
-const closeAllTags = (tag: TagView | null) => {
+const closeAllTags = (tag: TabState | null) => {
   closeContextMenu();
   tagsViewStore.delAllViews().then((result: any) => {
     tagsViewStore.toLastView(result.visitedViews, tag || undefined);
@@ -605,17 +592,14 @@ const closeAllTags = (tag: TagView | null) => {
 };
 
 /** 固定/取消固定标签 */
-const togglePin = (tag: TagView | null) => {
+const togglePin = (tag: TabState | null) => {
   if (!tag) return;
   closeContextMenu();
-  const found = visitedViews.value.find((v: TagView) => v.fullPath === tag.fullPath);
-  if (found) {
-    found.affix = !found.affix;
-  }
+  tagsViewStore.togglePin(tag);
 };
 
 /** 在新窗口打开标签页 */
-const openInNewWindow = (tag: TagView | null) => {
+const openInNewWindow = (tag: TabState | null) => {
   if (!tag) return;
   closeContextMenu();
   const url = router.resolve(tag.fullPath).href;
@@ -725,11 +709,8 @@ function initSortable() {
       from.removeChild(item);
       from.insertBefore(item, from.children[oldIndex] || null);
 
-      // 更新响应式数据
-      const views = [...visitedViews.value];
-      const [moved] = views.splice(oldIndex, 1);
-      views.splice(newIndex, 0, moved);
-      visitedViews.value = views;
+      // 委托给 store 处理排序
+      tagsViewStore.sortTabs(oldIndex, newIndex);
     },
   })
     .initializeSortable()
@@ -771,10 +752,16 @@ $tab-gap: 6px;
 $chrome-radius: 7px;
 
 .tabs-bar {
+  --tabs-bar-border-color: #e5e6eb;
+  --tabs-bar-hover-bg: #f5f7fa;
+  --tabs-bar-hover-color: #1d2129;
+  --tabs-bar-active-bg: #ffffff;
+
   display: flex;
   align-items: center;
   width: 100%;
-  border-top: 1px solid var(--el-border-color-lighter);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--tabs-bar-border-color);
   background-color: var(--el-bg-color);
 
   // ==================== 滚动按钮 ====================
@@ -786,12 +773,15 @@ $chrome-radius: 7px;
     height: 100%;
     flex-shrink: 0;
     cursor: pointer;
+    border-radius: 4px;
     color: var(--el-text-color-secondary);
-    transition: all 0.2s;
+    background: transparent;
+    transition: all 0.2s ease;
 
     &:hover {
-      color: var(--el-text-color-primary);
-      background-color: var(--el-fill-color-light);
+      color: var(--el-color-primary);
+      background: var(--el-fill-color-light);
+      transform: scale(1.05);
     }
 
     &.is-disabled {
@@ -827,56 +817,64 @@ $chrome-radius: 7px;
     position: relative;
     cursor: pointer;
     user-select: none;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     flex-shrink: 0;
     height: 100%;
+    color: #606266;
+
+    &.is-active {
+      color: var(--el-color-primary);
+      font-weight: 600;
+    }
+
+    // 亮/暗模式通用：hover 文字提亮
+    &:not(.is-active):hover {
+      color: #1d2129;
+    }
 
     // ---- Plain 样式 ----
     &--plain {
-      padding: 0 12px;
-      border-right: 1px solid var(--el-border-color-lighter);
-
-      &:first-child {
-        border-left: none;
-      }
+      padding: 0 16px;
 
       &.is-active {
         color: var(--el-color-primary);
-        background-color: var(--el-color-primary-light-9);
+        background-color: var(--tabs-bar-active-bg);
+        font-weight: 600;
+        border-bottom: 2px solid var(--el-color-primary);
       }
 
       &:not(.is-active):hover {
-        background-color: var(--el-fill-color-light);
+        background: var(--tabs-bar-hover-bg);
+        color: var(--tabs-bar-hover-color);
       }
     }
 
     // ---- Card 样式 ----
     &--card {
-      padding: 0 12px;
+      padding: 0 16px;
       margin: 3px 0 3px 4px;
       height: calc(100% - 6px);
-      border: 1px solid var(--el-border-color-lighter);
-      border-radius: 4px;
+      border: 1px solid transparent;
+      border-radius: 8px 8px 0 0;
 
       &.is-active {
         color: var(--el-color-primary);
-        background-color: var(--el-color-primary-light-9);
-        border-color: var(--el-color-primary-light-5);
+        background-color: var(--tabs-bar-active-bg);
+        font-weight: 600;
+        border-bottom: 2px solid var(--el-color-primary);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
       }
 
       &:not(.is-active):hover {
-        background-color: var(--el-fill-color-light);
+        background: var(--tabs-bar-hover-bg);
+        color: var(--tabs-bar-hover-color);
       }
     }
 
     // ---- Brisk 样式 ----
     &--brisk {
-      padding: 0 12px;
+      padding: 0 16px;
       position: relative;
-
-      &:not(:first-child) {
-        border-left: 1px solid var(--el-border-color-lighter);
-      }
 
       // 底部指示线
       &::after {
@@ -898,6 +896,8 @@ $chrome-radius: 7px;
 
       &.is-active {
         color: var(--el-color-primary);
+        background-color: var(--tabs-bar-active-bg);
+        font-weight: 600;
 
         &::after {
           transform: scaleX(1);
@@ -905,7 +905,8 @@ $chrome-radius: 7px;
       }
 
       &:not(.is-active):hover {
-        background-color: var(--el-fill-color-light);
+        background: var(--tabs-bar-hover-bg);
+        color: var(--tabs-bar-hover-color);
       }
     }
 
@@ -937,7 +938,7 @@ $chrome-radius: 7px;
         }
 
         .tabs-bar__chrome-bg__content {
-          background-color: var(--el-fill-color);
+          background-color: var(--el-fill-color-light);
           margin: 0 2px;
           border-radius: 4px;
         }
@@ -1010,7 +1011,7 @@ $chrome-radius: 7px;
   &__item-main {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     height: 100%;
     padding-right: 4px;
     z-index: 2;
@@ -1044,18 +1045,19 @@ $chrome-radius: 7px;
     justify-content: center;
     width: 16px;
     height: 16px;
-    margin-left: 2px;
-    border-radius: 50%;
+    margin-left: 8px;
+    border-radius: 4px;
     transition: all 0.15s;
   }
 
   &__close {
-    color: var(--el-text-color-secondary);
+    color: #94a3b8;
     opacity: 0;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
 
     .tabs-bar__item:hover & {
       opacity: 1;
+      color: #666e7d;
     }
 
     .tabs-bar__item.is-active & {
@@ -1064,8 +1066,8 @@ $chrome-radius: 7px;
     }
 
     &:hover {
-      color: var(--el-color-primary);
-      background-color: var(--el-color-primary-light-9);
+      background-color: rgba(245, 63, 63, 0.1);
+      color: #f53f3f;
     }
   }
 
@@ -1091,16 +1093,18 @@ $chrome-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--el-text-color-secondary);
-    transition: all 0.2s;
+    background: transparent;
+    transition: all 0.2s ease;
 
     &:hover {
-      color: var(--el-text-color-primary);
-      background-color: var(--el-fill-color-light);
+      color: var(--el-color-primary);
+      background: var(--el-fill-color-light);
+      transform: scale(1.05);
     }
   }
 
@@ -1173,5 +1177,94 @@ $chrome-radius: 7px;
 .tab-slide-leave-to {
   opacity: 0;
   transform: translateX(10px);
+}
+</style>
+
+<style lang="scss">
+// ==================== 暗黑模式适配（非 scoped，确保选择器优先级稳定） ====================
+html.dark .tabs-bar {
+  --tabs-bar-border-color: rgba(255, 255, 255, 0.06);
+  --tabs-bar-hover-bg: rgba(255, 255, 255, 0.05);
+  --tabs-bar-hover-color: #e5eaf3;
+  --tabs-bar-active-bg: #1a1d24;
+
+  // 未激活文字：亮灰色，清晰可读
+  .tabs-bar__item {
+    color: #b3b3b3;
+
+    &.is-active {
+      color: var(--el-color-primary);
+    }
+
+    &:not(.is-active):hover {
+      color: #e5eaf3;
+    }
+  }
+
+  // Card 激活态边框
+  .tabs-bar__item--card.is-active {
+    border-color: transparent;
+    border-bottom-color: var(--el-color-primary);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  // Chrome 激活态背景
+  .tabs-bar__item--chrome.is-active .tabs-bar__chrome-bg__content {
+    background-color: var(--el-color-primary-light-9);
+  }
+
+  .tabs-bar__item--chrome.is-active .tabs-bar__chrome-bg__before,
+  .tabs-bar__item--chrome.is-active .tabs-bar__chrome-bg__after {
+    fill: var(--el-color-primary-light-9);
+  }
+
+  .tabs-bar__item--chrome:not(.is-active):hover .tabs-bar__chrome-bg__content {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  // 分割线
+  .tabs-bar__divider {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  // 滚动按钮
+  .tabs-bar__scroll-btn {
+    color: rgba(255, 255, 255, 0.55);
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  // 工具按钮
+  .tabs-bar__tool-btn {
+    color: rgba(255, 255, 255, 0.55);
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  // 工具区边界
+  .tabs-bar__tools {
+    border-left-color: rgba(255, 255, 255, 0.06);
+  }
+
+  // 关闭按钮
+  .tabs-bar__close {
+    color: rgba(255, 255, 255, 0.55);
+
+    &:hover {
+      color: #f53f3f;
+      background-color: rgba(245, 63, 63, 0.15);
+    }
+  }
+
+  // 固定按钮
+  .tabs-bar__pin {
+    color: rgba(255, 255, 255, 0.45);
+  }
 }
 </style>

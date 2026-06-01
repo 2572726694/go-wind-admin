@@ -33,6 +33,7 @@
   .el-menu-item,
   .el-sub-menu__title {
     color: var(--menu-text) !important;
+    border-radius: 6px;
   }
 
   .el-menu-item:hover,
@@ -42,31 +43,59 @@
   }
 
   .el-menu-item.is-active {
-    color: var(--menu-active-text) !important;
-    background-color: var(--menu-hover) !important;
+    background-color: var(--el-color-primary-light-9) !important;
+    color: var(--el-color-primary) !important;
+    font-weight: 500 !important;
+
+    .el-icon {
+      color: var(--el-color-primary) !important;
+    }
   }
 }
 
-// ============================================
-// 混合布局左侧菜单 hover 样式
-// ============================================
-
+// 混合布局左侧菜单 hover 样式（与 LayoutSidebar 统一规范）
 .layout-mix .layout__sidebar--left .el-menu {
-  .el-menu-item {
-    &:hover {
-      background-color: var(--menu-hover) !important;
-    }
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    color: #1d2129 !important;
   }
 
-  .el-sub-menu__title {
-    &:hover {
-      background-color: var(--menu-hover) !important;
+  .el-menu-item.is-active {
+    background-color: var(--el-color-primary-light-9) !important;
+    color: var(--el-color-primary) !important;
+    font-weight: 500 !important;
+
+    .el-icon {
+      color: var(--el-color-primary) !important;
     }
   }
 }
 
-// 深色或深蓝侧边栏的 hover 样式
-html.dark .layout-mix .layout__sidebar--left .el-menu,
+// 暗黑模式混合布局侧边栏
+html.dark .layout-mix .layout__sidebar--left .el-menu {
+  .el-menu-item,
+  .el-sub-menu__title {
+    color: #94a3b8 !important;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #cbd5e1 !important;
+    }
+  }
+
+  .el-menu-item.is-active {
+    background-color: var(--el-color-primary-light-9) !important;
+    color: var(--el-color-primary) !important;
+    font-weight: 500 !important;
+
+    .el-icon {
+      color: var(--el-color-primary) !important;
+    }
+  }
+}
+
+// 深蓝色侧边栏
 html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
   .el-menu-item,
   .el-sub-menu__title {
@@ -170,3 +199,137 @@ html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
 .collapse-show-title-popper {
   display: none !important;
 }
+
+// ============================================
+// 表格 Icon Button 全局统一规范
+// ============================================
+
+.table-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+
+  // ---- Primary（编辑/查看/下载/重启） ----
+  &--primary {
+    color: var(--el-color-primary) !important;
+
+    svg,
+    i,
+    .iconify {
+      color: inherit !important;
+      fill: currentColor !important;
+    }
+
+    &:hover {
+      background-color: var(--el-color-primary-light-9);
+    }
+  }
+
+  // ---- Danger（删除/停止） ----
+  &--danger {
+    color: var(--el-color-danger) !important;
+
+    svg,
+    i,
+    .iconify {
+      color: inherit !important;
+      fill: currentColor !important;
+    }
+
+    &:hover {
+      background-color: var(--el-color-danger-light-9);
+    }
+  }
+
+  // ---- Success（启动） ----
+  &--success {
+    color: var(--el-color-success) !important;
+
+    svg,
+    i,
+    .iconify {
+      color: inherit !important;
+      fill: currentColor !important;
+    }
+
+    &:hover {
+      background-color: var(--el-color-success-light-9);
+    }
+  }
+
+  // ---- Warning ----
+  &--warning {
+    color: var(--el-color-warning) !important;
+
+    svg,
+    i,
+    .iconify {
+      color: inherit !important;
+      fill: currentColor !important;
+    }
+
+    &:hover {
+      background-color: var(--el-color-warning-light-9);
+    }
+  }
+  
+  // 默认颜色（无修饰符类时）
+  &:not([class*="--"]) {
+    color: var(--el-text-color-regular) !important;
+    
+    svg,
+    i,
+    .iconify {
+      color: inherit !important;
+      fill: currentColor !important;
+    }
+
+    &:hover {
+      background-color: var(--el-fill-color-light);
+      color: var(--el-text-color-primary) !important;
+    }
+  }
+
+  // 按钮之间间距 8px
+  & + .table-icon-btn {
+    margin-left: 8px;
+  }
+}
+
+// ---- 暗色模式适配 ----
+html.dark .table-icon-btn {
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  &--primary:hover {
+    background-color: var(--el-color-primary-light-9);
+  }
+
+  &--danger:hover {
+    background-color: var(--el-color-danger-light-9);
+  }
+
+  &--success:hover {
+    background-color: var(--el-color-success-light-9);
+  }
+
+  &--warning:hover {
+    background-color: var(--el-color-warning-light-9);
+  }
+}
+
+// ============================================
+// vxe-table 全局选中行样式（明暗模式通用）
+// 注意：选中行/hover/斑马纹的完整覆盖已移至 _vxe-table.scss 统一管理
+// ============================================
+

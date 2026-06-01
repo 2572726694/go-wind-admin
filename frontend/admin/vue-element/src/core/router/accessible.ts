@@ -6,6 +6,8 @@ import {
   generateRoutesByFrontend,
 } from "@/core/router/generators";
 import { AccessModeType } from "@/core/preferences";
+import type { GenerateMenuAndRoutesOptions } from "./types";
+import type { RouteRecordRaw } from "vue-router";
 
 async function generateAccessible(mode: AccessModeType, options: GenerateMenuAndRoutesOptions) {
   const { router } = options;

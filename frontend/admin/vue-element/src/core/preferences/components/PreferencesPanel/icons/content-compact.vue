@@ -20,7 +20,7 @@
       />
       <rect
         id="svg_8"
-        fill="hsl(var(--primary))"
+        fill="hsl(var(--primary-hsl))"
         height="9.07027"
         stroke="null"
         width="104.07934"

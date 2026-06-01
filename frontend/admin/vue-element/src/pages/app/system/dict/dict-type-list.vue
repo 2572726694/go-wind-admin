@@ -9,7 +9,7 @@
     >
       <!-- 启用状态 -->
       <template #isEnabled="scope: any">
-        <ElTag size="small" effect="dark" round :color="enableBoolToColor(scope.row.isEnabled)">
+        <ElTag size="small" :type="scope.row.isEnabled ? 'success' : 'info'" effect="plain">
           {{ enableBoolToName(scope.row.isEnabled) }}
         </ElTag>
       </template>
@@ -28,8 +28,8 @@ import ProPage from "@/components/Pro/ProPage/index.vue";
 import type { ProPageConfig } from "@/components/Pro/ProPage/types";
 import DictTypeDrawer from "./dict-type-drawer.vue";
 
-import { enableBoolToColor, enableBoolToName, useDeleteDictType } from "@/api/composables";
-import { $t } from '@/core/i18n';
+import { enableBoolToName, useDeleteDictType } from "@/api/composables";
+import { $t } from "@/core/i18n";
 import { useDictViewStore } from "@/pages/app/system/dict/dict-view.state";
 
 const { mutateAsync: deleteDictType } = useDeleteDictType();
@@ -39,7 +39,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -91,8 +90,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

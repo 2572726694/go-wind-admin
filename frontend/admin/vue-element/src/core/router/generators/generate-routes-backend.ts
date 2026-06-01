@@ -1,6 +1,11 @@
 import type { RouteRecordRaw } from "vue-router";
 
 import { mapTree } from "@/utils";
+import type {
+  ComponentRecordType,
+  GenerateMenuAndRoutesOptions,
+  RouteRecordStringComponent,
+} from "../types";
 
 /**
  * 动态生成路由 - 后端方式

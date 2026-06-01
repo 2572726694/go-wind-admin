@@ -2,7 +2,7 @@
   <ElDrawer
     v-model="visible"
     :title="title"
-    size="600px"
+    :size="DRAWER_WIDTH"
     :close-on-click-modal="false"
     :append-to-body="true"
     :destroy-on-close="true"
@@ -101,7 +101,8 @@ import {
   buildPermissionTree,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
+import { DRAWER_WIDTH } from "@/constants";
 
 const emit = defineEmits<{
   success: [];

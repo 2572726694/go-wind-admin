@@ -1,5 +1,3 @@
-import { isFunction, isObject, isString } from "@vue/shared";
-
 /**
  * 检查传入的值是否为undefined。
  *
@@ -20,7 +18,27 @@ function isBoolean(value: unknown): value is boolean {
 }
 
 /**
- * 检查传入的值是否为空。
+ * 检查传入的值是否为字符串
+ */
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+/**
+ * 检查传入的值是否为对象（非 null）
+ */
+function isObject(value: unknown): value is Record<string, any> {
+  return value !== null && typeof value === "object";
+}
+
+/**
+ * 检查传入的值是否为函数
+ */
+function isFunction(value: unknown): value is (...args: any[]) => any {
+  return typeof value === "function";
+}
+
+/**
  *
  * 以下情况将被认为是空：
  * - 值为null。

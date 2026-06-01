@@ -6,25 +6,32 @@
       :to="{ path: '/' }"
       class="breadcrumb__home"
     >
-      <div v-if="breadcrumbPrefs.showIcon" class="i-svg:homepage breadcrumb__icon" />
+      <SvgIcon
+        v-if="breadcrumbPrefs.showIcon"
+        icon="homepage"
+        :size="16"
+        class="breadcrumb__icon"
+      />
       {{ $t("common.breadcrumb.home") }}
     </el-breadcrumb-item>
     <el-breadcrumb-item v-for="(item, index) in breadcrumbs" :key="item.path">
       <span
         v-if="item.redirect === 'noredirect' || index === breadcrumbs.length - 1"
-        class="color-gray-400"
+        class="breadcrumb__current"
       >
-        <div
+        <SvgIcon
           v-if="breadcrumbPrefs.showIcon && item.meta?.icon"
-          :class="getIconClass(item.meta.icon as string)"
+          :icon="item.meta.icon as string"
+          :size="16"
           class="breadcrumb__item-icon"
         />
         {{ translateRouteTitle((item.meta.title as string) ?? "") }}
       </span>
       <a v-else @click.prevent="handleLink(item)">
-        <div
+        <SvgIcon
           v-if="breadcrumbPrefs.showIcon && item.meta?.icon"
-          :class="getIconClass(item.meta.icon as string)"
+          :icon="item.meta.icon as string"
+          :size="16"
           class="breadcrumb__item-icon"
         />
         {{ translateRouteTitle((item.meta.title as string) ?? "") }}
@@ -36,9 +43,11 @@
 <script setup lang="ts">
 import { RouteLocationMatched } from "vue-router";
 import { compile } from "path-to-regexp";
+
 import { router } from "@/router";
-import { translateRouteTitle } from '@/core/i18n';
+import { translateRouteTitle } from "@/core/i18n";
 import { preferences } from "@/core/preferences";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 const currentRoute = useRoute();
 const pathCompile = (path: string) => {
@@ -55,8 +64,7 @@ const breadcrumbs = ref<Array<RouteLocationMatched>>([]);
 // 是否可见：启用 + 不只有一个时隐藏检查
 const visible = computed(() => {
   if (!breadcrumbPrefs.value.enable) return false;
-  if (breadcrumbPrefs.value.hideOnlyOne && breadcrumbs.value.length <= 1) return false;
-  return true;
+  return !(breadcrumbPrefs.value.hideOnlyOne && breadcrumbs.value.length <= 1);
 });
 
 // 面包屑样式类
@@ -65,13 +73,6 @@ const breadcrumbClass = computed(() => {
     "breadcrumb--background": breadcrumbPrefs.value.styleType === "background",
   };
 });
-
-// 图标类名处理
-function getIconClass(icon?: string) {
-  if (!icon) return "";
-  if (icon.startsWith("lucide:")) return `i-lucide:${icon.replace("lucide:", "")}`;
-  return `i-svg:${icon}`;
-}
 
 function getBreadcrumb() {
   breadcrumbs.value = currentRoute.matched.filter(
@@ -115,16 +116,7 @@ onBeforeMount(() => {
 .breadcrumb {
   display: flex;
   align-items: center;
-
-  // 覆盖 element-plus 的样式
-  :deep(.el-breadcrumb__inner),
-  :deep(.el-breadcrumb__inner a) {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 400 !important;
-    color: var(--el-text-color-regular) !important;
-  }
+  font-size: 14px;
 
   // background 风格
   &--background {
@@ -158,6 +150,93 @@ onBeforeMount(() => {
     height: 16px;
     flex-shrink: 0;
     color: currentColor;
+  }
+}
+</style>
+
+<!--
+  面包屑颜色/字重样式用非 scoped 全局块，确保 :last-child 等选择器
+  的特异性能覆盖 Element Plus 默认样式，不再依赖 scoped + :deep() 组合
+-->
+<style lang="scss">
+.breadcrumb {
+  // 非当前页：中灰 + 常规字重
+  .el-breadcrumb__inner,
+  .el-breadcrumb__inner a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    color: #909399 !important;
+    transition: color 0.2s ease;
+  }
+
+  // 当前页（最后一项）：深黑 + 半粗体，视觉焦点
+  .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+    color: #303133 !important;
+    font-weight: 600 !important;
+  }
+
+  // 当前页（最后一项）内部 .breadcrumb__current span 也必须深色
+  .el-breadcrumb__item:last-child .breadcrumb__current {
+    color: #303133 !important;
+    font-weight: 600 !important;
+  }
+
+  // 可点击链接 hover
+  .el-breadcrumb__inner a:hover {
+    color: var(--el-color-primary) !important;
+  }
+
+  // 分隔符
+  .el-breadcrumb__separator {
+    color: #c0c4cc;
+  }
+
+  // background 风格暗色模式
+  &.breadcrumb--background {
+    .el-breadcrumb__item:not(:last-child) .el-breadcrumb__inner {
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+    .el-breadcrumb__item:not(:last-child) .el-breadcrumb__inner:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  // ======== 暗色模式 ========
+  html.dark & {
+    .el-breadcrumb__inner,
+    .el-breadcrumb__inner a {
+      color: #d9d9d9 !important;
+    }
+
+    .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+
+    .el-breadcrumb__item:last-child .breadcrumb__current {
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+
+    .el-breadcrumb__separator {
+      color: #595959 !important;
+    }
+
+    .el-breadcrumb__inner a:hover {
+      color: var(--el-color-primary) !important;
+    }
+
+    &.breadcrumb--background {
+      .el-breadcrumb__item:not(:last-child) .el-breadcrumb__inner {
+        background-color: rgba(255, 255, 255, 0.06);
+      }
+      .el-breadcrumb__item:not(:last-child) .el-breadcrumb__inner:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
   }
 }
 </style>

@@ -48,13 +48,13 @@ export function useProPage<T = any, Q = any>(config: ProPageConfig<T, Q>) {
               }
             },
           } as any,
-          slots as any,
+          slots as any
         ) as any;
     },
     {
       name: "ProPageWrapper",
       inheritAttrs: false,
-    },
+    }
   );
 
   return [Page, api] as const;

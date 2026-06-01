@@ -35,3 +35,12 @@ export const LOGIN_PATH = "/login";
  * @zh_CN 默认首页地址
  */
 export const DEFAULT_HOME_PATH = "/analytics";
+
+/**
+ * 抽屉通用宽度
+ *
+ * @description
+ * 全系统标准抽屉宽度，与 Dialog 弹窗宽度统一
+ * 复杂内容抽屉（菜单树、权限树等）可按需使用更宽的值
+ */
+export const DRAWER_WIDTH = "480px";

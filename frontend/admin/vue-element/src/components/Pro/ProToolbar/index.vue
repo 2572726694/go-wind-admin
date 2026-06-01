@@ -2,9 +2,11 @@
   <div v-if="visible" class="pro-toolbar" :class="props.class">
     <div class="flex flex-col md:flex-row justify-between gap-y-2">
       <!-- 左侧按钮 -->
-      <div class="toolbar-left flex gap-y-2.5 gap-x-2 md:gap-x-3 flex-wrap">
+      <div class="toolbar-left flex items-center gap-y-2.5 gap-x-2 md:gap-x-3 flex-wrap">
         <template v-for="btn in leftButtons" :key="btn.name">
-          <AccessControl :codes="btn.auth ? (Array.isArray(btn.auth) ? btn.auth : [btn.auth]) : undefined">
+          <AccessControl
+            :codes="btn.auth ? (Array.isArray(btn.auth) ? btn.auth : [btn.auth]) : undefined"
+          >
             <ElButton
               v-if="shouldShow(btn)"
               v-bind="btn.attrs"
@@ -20,10 +22,12 @@
         <slot name="left" />
       </div>
 
-      <!-- 右侧按钮 -->
-      <div class="toolbar-right flex items-center gap-y-2.5 gap-x-2 md:gap-x-3 flex-wrap">
+      <!-- 右侧工具按钮 -->
+      <div class="toolbar-right flex items-center gap-y-2.5 gap-x-1 md:gap-x-1.5 flex-wrap">
         <template v-for="btn in rightButtons" :key="'right-' + btn.name">
-          <AccessControl :codes="btn.auth ? (Array.isArray(btn.auth) ? btn.auth : [btn.auth]) : undefined">
+          <AccessControl
+            :codes="btn.auth ? (Array.isArray(btn.auth) ? btn.auth : [btn.auth]) : undefined"
+          >
             <ElButton
               v-if="shouldShow(btn)"
               v-bind="btn.attrs"
@@ -167,8 +171,7 @@ const hasFilterContent = computed(() => filterableColumns.value.length > 0 || !!
 // 检查按钮是否应该显示（仅处理 hidden/visible，权限由 AccessControl 组件处理）
 function shouldShow(btn: ToolbarButton | ToolbarCustomButton): boolean {
   if (btn.hidden) return false;
-  if (btn.visible && !btn.visible()) return false;
-  return true;
+  return !(btn.visible && !btn.visible());
 }
 
 // 处理按钮点击
@@ -258,6 +261,196 @@ defineExpose({
   :deep(.el-button) {
     margin-right: 0 !important;
     margin-left: 0 !important;
+
+    // ======== 统一基础规范 ========
+    height: 32px;
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    // ======== 主按钮（primary）—— 标准 Element Plus 主色 ========
+    &.el-button--primary {
+      background-color: var(--el-color-primary);
+      border-color: var(--el-color-primary);
+      color: #fff;
+
+      &:hover,
+      &:focus {
+        background-color: var(--el-color-primary-light-3);
+        border-color: var(--el-color-primary-light-3);
+        color: #fff;
+      }
+
+      &:active {
+        background-color: var(--el-color-primary-dark-2);
+        border-color: var(--el-color-primary-dark-2);
+        color: #fff;
+      }
+    }
+
+    // ======== 危险按钮（danger）—— 柔和红色 ========
+    &.el-button--danger {
+      background-color: rgba(245, 63, 63, 0.1);
+      border-color: rgba(245, 63, 63, 0.25);
+      color: #f53f3f;
+
+      &:hover,
+      &:focus {
+        background-color: rgba(245, 63, 63, 0.18);
+        border-color: rgba(245, 63, 63, 0.4);
+        color: #f53f3f;
+      }
+
+      &:active {
+        background-color: rgba(245, 63, 63, 0.22);
+      }
+    }
+
+    // ======== 成功按钮（success）—— 柔和绿色 ========
+    &.el-button--success {
+      background-color: rgba(82, 196, 26, 0.1);
+      border-color: rgba(82, 196, 26, 0.3);
+      color: #52c41a;
+
+      &:hover,
+      &:focus {
+        background-color: rgba(82, 196, 26, 0.18);
+        border-color: rgba(82, 196, 26, 0.5);
+        color: #52c41a;
+      }
+
+      &:active {
+        background-color: rgba(82, 196, 26, 0.22);
+      }
+    }
+
+    // ======== 普通按钮（default）—— 中性灰 ========
+    // stylelint-disable-next-line selector-max-universal
+    &:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.el-button--info):not(.is-circle) {
+      background-color: rgba(0, 0, 0, 0.04);
+      border-color: #dcdfe6;
+      color: var(--el-text-color-regular);
+
+      &:hover,
+      &:focus {
+        background-color: rgba(0, 0, 0, 0.08);
+        border-color: #c0c4cc;
+        color: var(--el-text-color-primary);
+      }
+    }
+  }
+}
+
+// ======== 右侧圆形工具按钮 ========
+.toolbar-right {
+  flex-shrink: 0;
+
+  // 圆形图标按钮：32px，与左侧文字按钮高度匹配
+  :deep(.el-button.is-circle) {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: transparent;
+    border: none;
+    color: var(--el-text-color-regular);
+    transition: all 0.2s ease;
+    font-size: 15px;
+
+    &:hover {
+      background-color: var(--el-fill-color-light);
+      color: var(--el-text-color-primary);
+    }
+
+    &:active {
+      background-color: var(--el-fill-color);
+    }
+  }
+}
+
+// ======== 暗色模式适配 ========
+:global(html.dark) {
+  .toolbar-left,
+  .toolbar-right {
+    :deep(.el-button) {
+      // 主按钮（暗色模式：柔和风格，与其他按钮统一）
+      &.el-button--primary {
+        background-color: var(--el-color-primary-light-9);
+        border-color: var(--el-color-primary-light-5);
+        color: var(--el-color-primary-light-3);
+
+        &:hover,
+        &:focus {
+          background-color: var(--el-color-primary-light-8);
+          border-color: var(--el-color-primary-light-3);
+        }
+      }
+
+      // 危险按钮
+      &.el-button--danger {
+        background-color: rgba(245, 63, 63, 0.15);
+        border-color: rgba(245, 63, 63, 0.35);
+
+        &:hover,
+        &:focus {
+          background-color: rgba(245, 63, 63, 0.25);
+          border-color: rgba(245, 63, 63, 0.5);
+        }
+      }
+
+      // 成功按钮
+      &.el-button--success {
+        background-color: rgba(82, 196, 26, 0.15);
+        border-color: rgba(82, 196, 26, 0.4);
+
+        &:hover,
+        &:focus {
+          background-color: rgba(82, 196, 26, 0.25);
+          border-color: rgba(82, 196, 26, 0.6);
+        }
+      }
+
+      // 普通按钮
+      // 同时覆盖 EP CSS 变量 + 直接属性，确保不被全局暗色主题覆盖
+      // stylelint-disable-next-line selector-max-universal
+      &:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.el-button--info):not(.is-circle) {
+        --el-button-bg-color: rgba(255, 255, 255, 0.06);
+        --el-button-border-color: rgba(255, 255, 255, 0.15);
+        --el-button-text-color: var(--el-text-color-regular);
+        --el-button-hover-bg-color: rgba(255, 255, 255, 0.1);
+        --el-button-hover-border-color: rgba(255, 255, 255, 0.25);
+        --el-button-hover-text-color: var(--el-text-color-primary);
+
+        background-color: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        color: var(--el-text-color-regular) !important;
+
+        &:hover,
+        &:focus {
+          background-color: rgba(255, 255, 255, 0.1) !important;
+          border-color: rgba(255, 255, 255, 0.25) !important;
+          color: var(--el-text-color-primary) !important;
+        }
+      }
+    }
+  }
+
+  .toolbar-right {
+    :deep(.el-button.is-circle) {
+      color: var(--el-text-color-secondary);
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: var(--el-text-color-primary);
+      }
+
+      &:active {
+        background-color: rgba(255, 255, 255, 0.12);
+      }
+    }
   }
 }
 </style>

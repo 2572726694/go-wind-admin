@@ -32,7 +32,7 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
 import { computed, ref } from "vue";
 import { ElButton } from "element-plus";
-import { useI18n } from '@/core/i18n';
+import { useI18n } from "@/core/i18n";
 import ProForm from "../ProForm/index.vue";
 import type { ProModalConfig, ModalMode } from "./types";
 
@@ -61,7 +61,13 @@ const visible = computed({
 const containerProps = computed(() =>
   props.config.component === "drawer"
     ? { destroyOnClose: true, appendToBody: true, lockScroll: false, ...props.config.drawer }
-    : { destroyOnClose: true, alignCenter: true, appendToBody: true, lockScroll: false, ...props.config.dialog }
+    : {
+        destroyOnClose: true,
+        alignCenter: true,
+        appendToBody: true,
+        lockScroll: false,
+        ...props.config.dialog,
+      }
 );
 const formProps = computed(() => ({
   labelWidth: "auto",

@@ -41,7 +41,7 @@ import {
   useDeletePosition,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const { mutateAsync: deletePosition } = useDeletePosition();
 
@@ -49,7 +49,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -139,14 +138,14 @@ const pageConfig = computed<ProPageConfig>(() => ({
       },
       { prop: "description", label: $t("pages.position.description"), minWidth: 150 },
       { prop: "orgUnitName", label: $t("pages.position.orgUnitName"), minWidth: 120 },
-      { prop: "headcount", label: $t("pages.position.headcount"), width: 80 },
+      { prop: "headcount", label: $t("pages.position.headcount"), width: 80, align: "right" },
       {
         prop: "status",
         label: $t("common.table.status"),
         minWidth: 100,
         slotName: "status",
       },
-      { prop: "sortOrder", label: $t("common.table.sortOrder"), width: 80 },
+      { prop: "sortOrder", label: $t("common.table.sortOrder"), width: 80, align: "right" },
       {
         prop: "createdAt",
         label: $t("common.table.createdAt"),
@@ -162,8 +161,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

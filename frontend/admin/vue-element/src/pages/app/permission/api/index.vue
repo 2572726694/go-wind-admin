@@ -1,6 +1,12 @@
 <template>
   <div class="app-container h-full flex flex-1 flex-col">
-    <ProPage ref="pageRef" :config="pageConfig" @add="handleAdd" @edit="handleEdit" @toolbar="handleToolbar" />
+    <ProPage
+      ref="pageRef"
+      :config="pageConfig"
+      @add="handleAdd"
+      @edit="handleEdit"
+      @toolbar="handleToolbar"
+    />
 
     <!-- 新增/编辑抽屉 -->
     <ApiDrawer ref="drawerRef" @success="handleSuccess" />
@@ -15,9 +21,9 @@ import ProPage from "@/components/Pro/ProPage/index.vue";
 import type { ProPageConfig, ToolsButton } from "@/components/Pro/ProPage/types";
 import ApiDrawer from "./api-drawer.vue";
 
-import { methodList, fetchListApis, useDeleteApi, useSyncApisApi } from "@/api/composables";
+import { methodList, httpMethodTagTypeMap, fetchListApis, useDeleteApi, useSyncApisApi } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const { mutateAsync: deleteApi } = useDeleteApi();
 const { mutateAsync: syncApis } = useSyncApisApi();
@@ -26,7 +32,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -86,7 +91,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
       { type: "index", label: $t("common.table.seq"), width: 60 },
       { prop: "description", label: $t("common.table.description"), minWidth: 150 },
       { prop: "path", label: $t("pages.api.path"), minWidth: 200 },
-      { prop: "method", label: $t("pages.api.method"), width: 100 },
+      {
+        prop: "method",
+        label: $t("pages.api.method"),
+        width: 100,
+        cellType: "tag",
+        tagTypeMap: httpMethodTagTypeMap,
+      },
       { prop: "module", label: $t("pages.api.module"), minWidth: 120 },
       { prop: "moduleDescription", label: $t("pages.api.moduleDescription"), minWidth: 150 },
       {
@@ -103,8 +114,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

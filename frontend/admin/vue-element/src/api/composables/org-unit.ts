@@ -22,7 +22,7 @@ import {
   deleteOrgUnit,
 } from "@/api/service/org-unit";
 import { queryClient } from "@/plugins/vue-query";
-import { i18n } from '@/core/i18n';
+import { i18n } from "@/core/i18n";
 
 const t = i18n.global.t;
 
@@ -175,7 +175,6 @@ export function orgUnitTypeToColor(orgUnitType: OrgUnit_Type) {
 
 export const findOrgUnit = (list: OrgUnit[], id: number): null | OrgUnit | undefined => {
   for (const item of list) {
-    // eslint-disable-next-line eqeqeq
     if (item.id == id) return item;
     if (item.children && item.children.length > 0) {
       const found = findOrgUnit(item.children, id);

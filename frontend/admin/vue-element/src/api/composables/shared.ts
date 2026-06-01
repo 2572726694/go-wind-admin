@@ -3,7 +3,7 @@
  * 从 stores/modules/api 迁移而来
  */
 import { computed } from "vue";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 export const enableList = computed(() => [
   { value: "true", label: $t("enum.enable.true") },
@@ -65,6 +65,17 @@ export const methodList = [
   { value: "PATCH", label: "PATCH" },
   { value: "DELETE", label: "DELETE" },
 ];
+
+// HTTP 方法对应的 Tag 颜色类型
+export const httpMethodTagTypeMap: Record<string, "success" | "primary" | "warning" | "danger" | "info"> = {
+  GET: "success",
+  POST: "primary",
+  PUT: "warning",
+  DELETE: "danger",
+  PATCH: "info",
+  HEAD: "info",
+  OPTIONS: "info",
+};
 
 export const statusList = computed(() => [
   { value: "ON", label: $t("enum.status.ON") },

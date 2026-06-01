@@ -15,8 +15,8 @@ export const queryClient = new QueryClient({
 });
 
 /** Vue Query Devtools 组件（动态导入，生产构建不打包） */
-export const TanstackQueryDevtools = defineAsyncComponent(
-  () => import("@tanstack/vue-query-devtools").then((m) => m.VueQueryDevtools),
+export const TanstackQueryDevtools = defineAsyncComponent(() =>
+  import("@tanstack/vue-query-devtools").then((m) => m.VueQueryDevtools)
 );
 
 export function setupVueQuery(app: App) {

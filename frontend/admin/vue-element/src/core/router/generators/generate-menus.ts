@@ -1,6 +1,7 @@
 import type { Router, RouteRecordRaw } from "vue-router";
 
 import { filterTree, mapTree } from "@/utils";
+import type { ExRouteRecordRaw, MenuRecordRaw } from "../types";
 
 /**
  * 根据 routes 生成菜单列表

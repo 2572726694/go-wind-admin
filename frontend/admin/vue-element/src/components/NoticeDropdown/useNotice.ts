@@ -2,7 +2,11 @@
  * 通知中心逻辑
  */
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { fetchListUserInbox, fetchGetInternalMessage, useMarkNotificationAsRead } from "@/api/composables";
+import {
+  fetchListUserInbox,
+  fetchGetInternalMessage,
+  useMarkNotificationAsRead,
+} from "@/api/composables";
 import { useAppUserStore } from "@/stores";
 import { PaginationQuery } from "@/core/transport/rest";
 import { router } from "@/router";
@@ -40,6 +44,7 @@ export function useNotice() {
         paging: { page: 1, pageSize: PAGE_SIZE },
         formValues: {
           recipient_user_id: userId.toString(),
+          status: "RECEIVED",
           ...params,
         },
         orderBy: ["-created_at"],
@@ -140,7 +145,7 @@ export function useNotice() {
   }
 
   function goMore() {
-    router.push("/inbox/messages");
+    router.push("/internal-message/inbox");
   }
 
   /**

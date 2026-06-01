@@ -1,5 +1,5 @@
 import type { AppRouteObject } from '@/core/router/types';
-import { createLazyRoute } from '@/router/utils/lazy';
+import { createLazyRoute } from '@/core/router';
 
 /**
  * 权限管理路由配置

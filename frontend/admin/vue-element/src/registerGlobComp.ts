@@ -7,7 +7,6 @@ import { configureVxeTable } from "@/plugins/vxe-table";
 import VXETable from "vxe-table";
 
 import { InstallCodeMirror } from "codemirror-editor-vue3";
-import { VueQueryPlugin } from "@tanstack/vue-query";
 
 // ============================================
 // 修复 Element Plus lockscreen 导致布局跳动

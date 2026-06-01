@@ -72,6 +72,9 @@ export async function refreshToken(): Promise<string> {
     accessStore.setAccessToken(newAccessToken ?? null);
     accessStore.setRefreshToken(newRefreshToken ?? null);
 
+    // token 已更新，重连 SSE 以使用新凭证
+    reconnectSSEServer();
+
     return newAccessToken ?? "";
   } catch (error) {
     console.error("刷新 access token 失败", error);
@@ -234,9 +237,23 @@ export function startRefreshTimer(): void {
 export function connectSSEServer(): void {
   const accessStore = useAccessStore();
 
-  const targetSseUrl = `${import.meta.env.VITE_APP_SSE_URL}?stream=${encodeURIComponent(accessStore.accessToken ?? "")}`;
-
   const token = accessStore.accessToken ?? "";
+  const targetSseUrl = `${import.meta.env.VITE_APP_SSE_URL}?stream=${encodeURIComponent(token)}`;
+
   globalSSEClient.setHeaders({ Authorization: `Bearer ${token}` });
   globalSSEClient.connect(targetSseUrl);
+}
+
+/**
+ * 使用新 token 重连 SSE（关闭旧连接 → 更新凭证 → 重新连接）
+ * 适用于 token 刷新后 SSE 连接携带的凭证已过期的场景
+ */
+function reconnectSSEServer(): void {
+  const accessStore = useAccessStore();
+
+  const token = accessStore.accessToken ?? "";
+  const targetSseUrl = `${import.meta.env.VITE_APP_SSE_URL}?stream=${encodeURIComponent(token)}`;
+
+  globalSSEClient.setHeaders({ Authorization: `Bearer ${token}` });
+  globalSSEClient.reconnect(targetSseUrl);
 }

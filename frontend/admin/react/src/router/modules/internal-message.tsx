@@ -1,5 +1,5 @@
 import type { AppRouteObject } from '@/core/router/types';
-import { createLazyRoute } from '@/router/utils/lazy';
+import { createLazyRoute } from '@/core/router';
 
 /**
  * 内部消息管理路由配置

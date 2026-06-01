@@ -55,7 +55,7 @@ import {
   useDeleteTenant,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const { mutateAsync: deleteTenant } = useDeleteTenant();
 
@@ -71,7 +71,6 @@ const [ConnectedDrawer, modalApi] = useProModal({
 
 // === 页面配置 ===
 const pageConfig = computed<ProPageConfig>(() => ({
-
   // 搜索配置
   search: {
     fields: [
@@ -159,8 +158,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

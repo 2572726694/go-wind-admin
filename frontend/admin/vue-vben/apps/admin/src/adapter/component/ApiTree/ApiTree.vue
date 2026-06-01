@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, h, ref, unref, useAttrs, watch } from 'vue';
 
 import { LucideEllipsisVertical } from '@vben/icons';
@@ -137,7 +137,9 @@ function transformData(data: OptionsItem[]): OptionsItem[] {
       // 确保key有效：优先用value，否则用临时key
       key:
         value !== undefined && value !== null
-          ? (numberToString ? `${value}` : value)
+          ? (numberToString
+            ? `${value}`
+            : value)
           : `temp-key-${index}-${Date.now()}`,
       ...(childrenField && item[childrenField]
         ? { children: transformData(item[childrenField]) }

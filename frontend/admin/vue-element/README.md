@@ -4,114 +4,399 @@
 
   <img src="https://img.shields.io/badge/Vue-3.5.30-brightgreen.svg"/>
   <img src="https://img.shields.io/badge/Vite-8.0.0-green.svg"/>
-  <img src="https://img.shields.io/badge/Element Plus-2.13.5-blue.svg"/>
+  <img src="https://img.shields.io/badge/Element_Plus-2.13.5-blue.svg"/>
   <img src="https://img.shields.io/badge/TypeScript-5.9.3-blue.svg"/>
   <img src="https://img.shields.io/badge/license-MIT-green.svg"/>
 </div>
 
 ## 项目简介
 
-[GoWind Admin - Element Plus](https://github.com/tx7do/go-wind-admin/tree/main/frontend/admin/vue-element) 是一个基于 Vue3、Vite 8、TypeScript 和 Element-Plus 构建的企业级后台管理模板。项目在 vue3-element-admin 基础上进行定制开发，适配 Go-Wind 后端服务。
+[GoWind Admin - Element Plus](https://github.com/tx7do/go-wind-admin/tree/main/frontend/admin/vue-element) 是一个基于 Vue3、Vite 8、TypeScript 和 Element Plus 构建的企业级后台管理系统，适配 Go-Wind 后端 gRPC 服务。
 
 **核心技术栈：**
 
-- 🎯 Vue 3.5.30+ - Composition API
-- ⚡ Vite 8.0.0+ - 下一代前端构建工具
-- 💎 TypeScript 5.9.3+ - 类型安全
-- 🎨 Element Plus 2.13.5+ - UI 组件库
-- 📊 VXE Table 4.6.25+ - 高级表格组件
-- 📝 TipTap 3.20.0+ - 富文本编辑器
-- 🎨 UnoCSS - 原子化 CSS 引擎
+| 类别 | 技术 | 版本 |
+|---|---|---|
+| 框架 | Vue 3 | 3.5.30+ |
+| 构建 | Vite | 8.0.0+ |
+| 类型 | TypeScript | 5.9.3+ |
+| UI | Element Plus | 2.13.5+ |
+| 表格 | VXE Table | 4.6.25+ |
+| 编辑器 | TipTap | 3.20.0+ |
+| CSS | UnoCSS + SCSS | — |
+| 状态 | Pinia + Vue Query | — |
+| 路由 | Vue Router | 5.0+ |
+| 国际化 | vue-i18n | 11.3+ |
+| 图标 | Iconify (@iconify/vue) | — |
 
-**主要特性：**
-
-- ✅ **系统管理**：用户、角色、菜单、部门、字典、系统配置、通知公告
-- ✅ **权限管理**：动态路由、按钮权限、角色权限、数据权限
-- ✅ **多租户**：支持多租户模式和租户隔离（可配置开关）
-- ✅ **应用模块**：操作日志、内部消息、租户管理、权限管理等
-- ✅ **基础设施**：国际化、多布局、暗黑模式、全屏、水印、接口文档
-- ✅ **开发者工具**：代码生成器、Mock 服务器、ESLint + Prettier + Stylelint
-
-## 功能模块
-
-### 🔐 核心功能
-
-- **登录认证**：账号密码登录、Token 管理、多端认证
-- **个人中心**：基本信息设置、密码修改、安全设置、邮箱绑定、消息通知
-- **工作台**：数据分析、统计图表、业务概览
-
-### 👥 组织与人员管理 (OPM)
-
-- **组织架构**：部门管理、树形结构展示、层级维护
-- **岗位管理**：岗位配置、岗位分配、职责管理
-- **用户管理**：用户列表、新增编辑、角色分配、状态控制、详情查看
-
-### 🛡️ 权限管理
-
-- **权限点管理**：按钮权限、接口权限、权限码配置
-- **角色管理**：角色列表、权限配置、数据权限、角色分配
-
-### ⚙️ 系统配置
-
-- **菜单管理**：菜单配置、路由映射、图标选择、权限标识
-- **API 管理**：接口定义、路由配置、权限绑定
-- **字典管理**：数据字典、字典项管理、字典分类
-- **文件管理**：文件上传、存储管理、文件预览
-- **任务管理**：定时任务、任务调度、执行日志
-- **登录策略**：安全策略、登录限制、密码策略
-- **语言包管理**：国际化配置、多语言支持、语言包管理
-
-### 📋 审计日志
-
-- **登录日志**：登录记录、登录时间、登录 IP、登录状态
-- **API 日志**：接口调用、请求参数、响应时间
-- **操作日志**：操作记录、变更内容、操作人追踪
-- **数据访问日志**：数据查询、数据修改、数据导出
-- **权限审计日志**：权限变更、权限使用、权限异常
-
-### 🏭 租户管理
-
-- **租户管理**：租户配置、租户状态、有效期管理、资源配额
-
-### 💬 内部消息
-
-- **消息分类**：消息分类管理、消息类型配置
-- **消息管理**：消息发送、消息列表、消息已读标记
-
-## 环境要求
-
-| 环境类型        | 版本要求                                                         | 备注                       |
-|-------------|--------------------------------------------------------------|--------------------------|
-| **Node.js** | `^20.19.0` 或 `>=22.12.0`                                     | 推荐使用 LTS 版本（主版本为偶数）      |
-| **包管理器**    | `pnpm >= 8.0.0`                                              | 项目使用 pnpm 作为包管理器         |
-| **开发工具**    | [Visual Studio Code](https://code.visualstudio.com/Download) | 推荐安装 Vue、TypeScript 相关插件 |
+---
 
 ## 快速开始
 
+### 环境要求
+
+| 环境 | 版本 |
+|---|---|
+| Node.js | `^20.19.0` 或 `>=22.12.0` |
+| 包管理器 | `pnpm >= 8.0.0` |
+
+### 安装与启动
+
 ```bash
-# 安装 pnpm（如未安装）
-npm install pnpm -g
-
-# 设置镜像源（可选，国内用户推荐）
-pnpm config set registry https://registry.npmmirror.com
-
-# 安装依赖
-pnpm install
-
-# 启动开发服务器
-pnpm run dev
-
-# 访问地址：http://localhost:3000
+npm install pnpm -g                    # 安装 pnpm（如未安装）
+pnpm config set registry https://registry.npmmirror.com  # 国内镜像（可选）
+pnpm install                           # 安装依赖
+pnpm run dev                           # 启动开发服务器 → http://localhost:3000
 ```
 
-## 构建部署
+### 构建
 
 ```bash
-# 生产环境构建
-pnpm run build
+pnpm run build                         # 类型检查 + 生产构建
+pnpm run build-only                    # 仅构建（不做类型检查）
+pnpm run preview                       # 预览生产构建
+```
 
-# 构建完成后生成 dist 目录
-# 将 dist 目录部署到 Nginx 或其他静态服务器
+### 脚本命令
+
+| 命令 | 说明 |
+|---|---|
+| `pnpm run dev` | 启动开发服务器 |
+| `pnpm run build` | 类型检查 + 生产构建 |
+| `pnpm run type-check` | TypeScript 类型检查 |
+| `pnpm run lint` | ESLint + Prettier + Stylelint 全量检查 |
+| `pnpm run lint:eslint` | ESLint 检查 |
+| `pnpm run lint:prettier` | Prettier 格式化 |
+| `pnpm run lint:stylelint` | Stylelint 样式检查 |
+| `pnpm run commit` | 交互式规范提交 |
+
+---
+
+## 项目结构
+
+```
+src/
+├── api/                    # API 接口层（三层架构）
+│   ├── generated/          #   protobuf 自动生成（勿手动修改）
+│   ├── service/            #   Service 层（gRPC Client 封装）
+│   └── composables/        #   Vue Query hooks（面向组件的最终 API）
+│
+├── pages/                  # 页面视图
+│   ├── app/                #   业务页面
+│   │   ├── dashboard/      #     工作台
+│   │   ├── opm/            #     组织人员管理（用户/组织/岗位）
+│   │   ├── permission/     #     权限管理（权限/权限组/角色/菜单）
+│   │   ├── system/         #     系统管理（API/字典/文件/任务/策略/语言）
+│   │   ├── log/            #     审计日志（5类日志）
+│   │   ├── internal_message/ #   内部消息
+│   │   └── tenant/         #     租户管理
+│   └── core/               #   框架页面
+│       ├── login/          #     登录/注册
+│       ├── error/          #     错误页（403/404/500）
+│       └── redirect/       #     重定向
+│
+├── components/             # 公共组件
+│   ├── Pro/                #   Pro 高级组件（ProTable/ProForm/ProPage 等）
+│   ├── SvgIcon/            #   统一图标组件（Iconify + 本地 SVG）
+│   ├── Editor/             #   富文本编辑器（TipTap）
+│   ├── CommandPalette/     #   命令面板
+│   ├── IconSelect/         #   图标选择器
+│   ├── InputTag/           #   标签输入框
+│   ├── LangSelect/         #   语言选择器
+│   ├── NoticeDropdown/     #   通知下拉
+│   ├── ThemeSwitch/        #   主题切换
+│   └── AppLink/            #   外链组件
+│
+├── composables/            # 业务 composables
+│   ├── use-auth.ts         #   认证相关
+│   ├── use-dict-cache.ts   #   字典缓存
+│   ├── use-is-mobile.ts    #   移动端检测
+│   ├── use-token-refresh.ts #  Token 刷新
+│   ├── use-table-selection.ts # 表格选择
+│   ├── use-sortable.ts     #   拖拽排序
+│   └── ...                 #   其他
+│
+├── stores/                 # Pinia 状态管理
+│   └── modules/
+│       ├── access.store.ts #   权限（accessCodes/accessRoutes/accessMenus）
+│       ├── app-user.store.ts # 当前用户信息
+│       ├── tabbar.store.ts #   标签页管理
+│       ├── tags-view.store.ts # 标签页视图
+│       └── lock.store.ts   #   锁屏
+│
+├── core/                   # 核心模块（可跨项目复用）
+│   ├── access/             #   权限控制
+│   ├── preferences/        #   偏好设置（主题/布局/侧边栏等）
+│   ├── router/             #   路由核心（动态路由/权限过滤/菜单生成）
+│   ├── storage/            #   存储管理（TTL/驱逐/多标签页同步）
+│   └── transport/          #   传输层
+│       ├── rest/           #     HTTP 请求（Axios + 拦截器 + 认证）
+│       └── sse/            #     Server-Sent Events
+│
+├── layouts/                # 布局组件
+│   ├── Layout.vue          #   布局入口
+│   ├── LeftLayout.vue      #   侧边栏布局（sidebar-nav）
+│   ├── TopLayout.vue       #   顶部布局（header-nav）
+│   ├── MixLayout.vue       #   混合布局（mixed-nav）
+│   └── components/         #   布局子组件（侧边栏/顶栏/标签栏/面包屑等）
+│
+├── router/                 # 路由业务绑定
+│   ├── index.ts            #   路由实例
+│   ├── guard.ts            #   路由守卫
+│   ├── auth.guard.ts           #   权限路由入口
+│   └── routes/modules/app/ #   业务路由模块文件
+│
+├── styles/                 # 全局样式
+├── plugins/                # 插件（ECharts/VXE Table/Vue Query/NProgress）
+├── types/                  # TypeScript 类型定义
+├── utils/                  # 工具函数
+├── constants/              # 常量配置
+├── directives/             # 自定义指令
+└── locales/                # 翻译资源（zh-CN/en-US）
+```
+
+---
+
+## 架构概览
+
+### 分层架构
+
+```
+┌─────────────────────────────────────────────────────┐
+│  pages/                    页面视图层                │
+├─────────────────────────────────────────────────────┤
+│  components/  composables/ 组件 & 组合函数层         │
+├─────────────────────────────────────────────────────┤
+│  api/composables/          API hooks 层（Vue Query） │
+│  api/service/              Service 层（gRPC Client） │
+│  api/generated/            类型 & Client 工厂（自动）│
+├─────────────────────────────────────────────────────┤
+│  core/                     核心基础设施层            │
+│    transport/              请求传输（HTTP / SSE）    │
+│    preferences/            偏好设置                  │
+│    router/                 路由核心                  │
+│    storage/                存储管理                  │
+│    access/                 权限控制                  │
+├─────────────────────────────────────────────────────┤
+│  stores/                   状态管理（Pinia）         │
+├─────────────────────────────────────────────────────┤
+│  layouts/                  布局组件                  │
+├─────────────────────────────────────────────────────┤
+│  locales/                  国际化翻译资源            │
+└─────────────────────────────────────────────────────┘
+```
+
+### API 三层架构
+
+```
+generated/  ←── protobuf 自动生成，勿手动修改
+    │
+service/    ←── 一个文件 = 一个 gRPC Service 的单例封装
+    │
+composables/ ←── 面向组件的 Vue Query hooks
+    ├── use*()    组件内使用（需要 setup 上下文）
+    ├── fetch*()  组件外使用（Store、路由守卫等）
+    └── 工具函数   枚举映射（状态/颜色/名称）
+```
+
+### 请求流程
+
+```
+组件 → useXxx(query)                    Vue Query hook
+         ↓
+      xxxService.List(params)           service 层
+         ↓
+      gRPC Client → requestApi()        generated 层
+         ↓
+      RequestClient (Axios)             transport 层
+         ├── 注入 Authorization Token
+         ├── 注入 X-Request-ID
+         ├── 注入 Accept-Language
+         └── 401 → 自动刷新 Token
+```
+
+---
+
+## 模块文档
+
+各核心模块有独立的使用文档，面向业务开发者：
+
+| 模块 | 文档 | 说明 |
+|---|---|---|
+| API 层 | [src/api/README.md](src/api/README.md) | 三层架构、hooks 用法、新增模块步骤 |
+| 路由核心 | [src/core/router/README.md](src/core/router/README.md) | 动态路由、权限模式、路由配置方法 |
+| 偏好设置 | [src/core/preferences/README.md](src/core/preferences/README.md) | 主题/布局/侧边栏配置、usePreferences() |
+| 存储管理 | [src/core/storage/README.md](src/core/storage/README.md) | StorageManager 用法、TTL/驱逐/批量操作 |
+
+---
+
+## 开发指南
+
+### 自动导入
+
+项目配置了 `unplugin-auto-import` 和 `unplugin-vue-components`，以下内容无需手动 import：
+
+- **Vue API**：`ref`、`computed`、`watch`、`onMounted`、`defineComponent`、`useAttrs` 等
+- **Vue Router**：`useRoute`、`useRouter` 等
+- **Pinia**：`defineStore`、`storeToRefs` 等
+- **vue-i18n**：`useI18n` 等
+- **@vueuse/core**：`useDebounceFn`、`useClipboard` 等
+- **Element Plus**：所有组件和函数（`ElMessage`、`ElMessageBox` 等）
+
+### 新增业务页面
+
+完整流程只需修改 3 类文件：
+
+**1. 路由定义** — `src/router/routes/modules/app/xxx.ts`
+
+```ts
+export default {
+  path: "/app/xxx",
+  name: "Xxx",
+  component: () => import("@/pages/app/xxx/index.vue"),
+  meta: {
+    title: "routes.xxx",           // i18n key
+    icon: "lucide:folder",         // Iconify 图标
+    authority: ["permission_code"], // 权限码
+  },
+} satisfies RouteRecordRaw;
+```
+
+**2. 翻译文本** — `src/locales/zh-CN/routes.json` 和 `src/locales/en-US/routes.json`
+
+**3. 页面组件** — `src/pages/app/xxx/index.vue`
+
+### 调用 API
+
+```ts
+// 组件内 — 使用 Vue Query hooks
+import { useListUsers, useCreateUser } from "@/api";
+import { PaginationQuery } from "@/core/transport/rest";
+
+const query = new PaginationQuery({ paging: { page: 1, pageSize: 20 } });
+const { data, isLoading } = useListUsers(query);
+
+const { mutateAsync } = useCreateUser();
+await mutateAsync({ data: formValues });
+```
+
+```ts
+// 组件外（Store/路由守卫）— 使用 fetch* 方法
+import { fetchListUsers } from "@/api";
+
+const users = await fetchListUsers(query);
+```
+
+### 图标使用
+
+统一使用 `SvgIcon` 组件，支持所有 Iconify 图标集：
+
+```vue
+<SvgIcon icon="lucide:settings" :size="18" />
+<SvgIcon icon="ep:user" :size="20" />
+<SvgIcon icon="collapse" :size="16" />  <!-- 本地 SVG -->
+```
+
+### 权限控制
+
+```vue
+<!-- 按钮级权限 -->
+<el-button v-access="'user:create'">新增</el-button>
+<el-button v-access="'user:delete'">删除</el-button>
+```
+
+```ts
+// 编程式权限检查
+import { useAccess } from "@/core/access";
+const { hasAccessByCodes } = useAccess();
+if (hasAccessByCodes("user:create")) { /* ... */ }
+```
+
+### 偏好设置
+
+```ts
+import { updatePreferences, usePreferences } from "@/core/preferences";
+
+// 修改偏好
+updatePreferences({ sidebar: { collapsed: true } });
+
+// 读取偏好（组件内）
+const { isDark, layout, isMobile } = usePreferences();
+```
+
+---
+
+## 功能模块
+
+### 核心功能
+
+- **登录认证**：账号密码登录、验证码、Token 自动刷新、多端认证
+- **个人中心**：基本信息、密码修改、消息通知
+- **工作台**：数据分析、统计图表
+
+### 组织人员管理 (OPM)
+
+- **用户管理**：用户 CRUD、角色分配、状态控制、密码重置
+- **组织架构**：部门树管理、层级维护
+- **岗位管理**：岗位配置、岗位分配
+
+### 权限管理
+
+- **权限点管理**：按钮权限、接口权限、权限码
+- **权限组管理**：权限分组、批量配置
+- **角色管理**：角色 CRUD、权限绑定
+- **菜单管理**：菜单配置、路由映射、图标选择
+
+### 系统管理
+
+- **API 管理**：接口定义、权限绑定
+- **字典管理**：字典类型 + 字典条目
+- **文件管理**：文件上传下载、存储管理
+- **任务管理**：异步任务、执行日志
+- **登录策略**：安全策略、密码策略
+- **语言管理**：多语言配置
+
+### 审计日志
+
+- **登录日志**：登录记录、IP、状态
+- **API 日志**：接口调用、响应时间
+- **操作日志**：操作记录、变更追踪
+- **数据访问日志**：数据查询/修改/导出
+- **权限审计日志**：权限变更记录
+- **策略评估日志**：策略评估记录
+
+### 其他
+
+- **多租户**：租户管理、资源配额（可配置开关）
+- **内部消息**：消息分类、已读标记
+- **国际化**：中文/英文，可扩展
+- **多布局**：侧边菜单/顶部菜单/混合菜单/全屏内容
+- **暗黑模式**：light/dark/auto，17 种内置主题色
+- **偏好设置面板**：运行时可配置的主题/布局/快捷键
+
+---
+
+## 配置说明
+
+### 环境变量
+
+**开发环境** (`.env.development`)：
+
+```bash
+VITE_APP_PORT=3000                            # 应用端口
+VITE_APP_BASE_API=/admin/v1                   # 代理前缀
+VITE_APP_API_URL=http://localhost:7788        # 后端 API 地址
+VITE_APP_SSE_URL=http://localhost:7789/events # SSE 推送地址
+VITE_MOCK_DEV_SERVER=false                    # Mock 开关
+VITE_APP_TENANT_ENABLED=false                 # 多租户开关
+```
+
+**生产环境** (`.env.production`)：
+
+```bash
+VITE_APP_API_URL=https://api.demo.admin.gowind.cloud
+VITE_APP_SSE_URL=https://sse.demo.admin.gowind.cloud/events
+VITE_APP_TENANT_ENABLED=true
 ```
 
 ### Nginx 配置示例
@@ -126,225 +411,60 @@ server {
         index  index.html index.htm;
     }
 
-    # 反向代理配置
     location /admin/v1/ {
-        # 替换为您的后端 API 地址
         proxy_pass http://localhost:7788/;
     }
 }
 ```
 
-## 配置说明
+---
 
-### 环境变量
+## 提交规范
 
-项目提供了两个环境配置文件：
+采用 [Conventional Commits](https://www.conventionalcommits.org/)，通过 `pnpm run commit` 交互式提交。
 
-**开发环境** (`.env.development`)：
+格式：`<type>(<scope>): <subject>`
 
-```bash
-# 应用端口
-VITE_APP_PORT=3000
+| Type | 说明 |
+|---|---|
+| `feat` | 新功能 |
+| `fix` | 修复 bug |
+| `docs` | 文档变更 |
+| `style` | 代码格式调整 |
+| `refactor` | 重构 |
+| `test` | 测试 |
+| `chore` | 构建/工具链 |
 
-# 代理前缀
-VITE_APP_BASE_API=/admin/v1
-
-# 接口地址（默认指向本地后端）
-VITE_APP_API_URL=http://localhost:7788
-
-# SSE 实时推送地址
-VITE_APP_SSE_URL=http://localhost:7789/events
-
-# 启用 Mock 服务（true:开启 false:关闭）
-VITE_MOCK_DEV_SERVER=false
-
-# 多租户开关（true:开启 false:关闭）
-VITE_APP_TENANT_ENABLED=false
-```
-
-**生产环境** (`.env.production`)：
-
-```bash
-# 接口地址
-VITE_APP_API_URL=https://api.demo.admin.gowind.cloud
-
-# SSE 地址
-VITE_APP_SSE_URL=https://sse.demo.admin.gowind.cloud/events
-
-# 多租户开关
-VITE_APP_TENANT_ENABLED=true
-```
-
-## 项目结构
-
-```
-├── src/
-│   ├── api/              # API 接口定义
-│   ├── assets/           # 静态资源（图标、图片等）
-│   ├── components/       # 公共组件
-│   │   ├── DictSelect/  # 字典选择器
-│   │   ├── DictTag/     # 字典标签
-│   │   ├── Editor/      # 富文本编辑器
-│   │   ├── Pagination/  # 分页组件
-│   │   └── ...          # 其他组件
-│   ├── composables/     # 组合式函数
-│   ├── constants/       # 常量配置
-│   ├── core/            # 核心模块（权限、配置、存储）
-│   ├── directives/      # 自定义指令
-│   ├── i18n/            # 国际化配置
-│   ├── layouts/         # 布局组件
-│   ├── plugins/         # 插件配置（VXE Table、ECharts）
-│   ├── router/          # 路由配置
-│   ├── stores/          # Pinia 状态管理
-│   ├── styles/          # 全局样式
-│   ├── types/           # TypeScript 类型定义
-│   ├── utils/           # 工具函数
-│   └── pages/           # 页面视图
-│       ├── app/         # 应用模块（日志、消息、权限等）
-│       └── core/        # 核心功能（登录、个人中心等）
-├── mock/                # Mock 数据
-├── public/              # 公共资源
-└── vite.config.ts       # Vite 配置文件
-```
-
-## 技术亮点
-
-### 1. 自动化导入
-
-使用 `unplugin-auto-import` 和 `unplugin-vue-components` 实现：
-
-- Vue Composition API 自动导入
-- Element Plus 组件和函数自动导入
-- @vueuse/core 函数自动导入
-- 无需手动 import，提升开发效率
-
-### 2. 现代化 CSS 方案
-
-- **UnoCSS**：原子化 CSS 引擎，支持即时按需生成样式
-- **SCSS**：预处理器，支持变量和混入
-- **CSS Modules**：组件级样式隔离
-
-### 3. 类型安全
-
-- **TypeScript 严格模式**：全面的类型定义
-- **自动类型生成**：API 和组件类型自动生成
-- **Zod 验证**：运行时数据验证
-
-### 4. 高性能优化
-
-- **依赖预加载**：预加载常用组件，提升首次渲染速度
-- **代码分割**：路由级别的代码分割
-- **懒加载**：图片和组件懒加载
-- **打包优化**：Terser 压缩、移除 console 和 debugger
-
-### 5. 开发者体验
-
-- **ESLint + Prettier + Stylelint**：全方位的代码质量检查
-- **Husky + Commitlint**：Git 提交规范强制
-- **Mock Server**：本地 Mock 开发，不依赖后端
-- **热更新**：Vite HMR，秒级刷新
-
-## 脚本命令
-
-| 命令                          | 说明              |
-|-----------------------------|-----------------|
-| `pnpm run dev`              | 启动开发服务器         |
-| `pnpm run build`            | 类型检查并构建生产版本     |
-| `pnpm run build-only`       | 仅构建，不进行类型检查     |
-| `pnpm run preview`          | 预览生产构建          |
-| `pnpm run type-check`       | TypeScript 类型检查 |
-| `pnpm run lint`             | 执行所有代码规范检查      |
-| `pnpm run lint:eslint`      | ESLint 代码检查     |
-| `pnpm run lint:prettier`    | Prettier 代码格式化  |
-| `pnpm run lint:stylelint`   | Stylelint 样式检查  |
-| `pnpm run lint:lint-staged` | 提交前代码检查         |
-| `pnpm run commit`           | 使用 cz-git 交互式提交 |
-
-## 开发规范
-
-### 代码规范
-
-项目使用严格的代码规范，配置文件包括：
-
-- `.eslintrc` / `eslint.config.ts`：JavaScript/TypeScript 代码规范
-- `.prettierrc.yaml`：代码格式化配置
-- `.stylelintrc.cjs`：CSS/SCSS 样式规范
-- `.editorconfig`：编辑器基础配置
-
-### 提交规范
-
-项目采用 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
-
-```bash
-# 使用交互式提交
-git commit
-# 或使用命令
-pnpm run commit
-```
-
-**提交格式：** `<type>(<scope>): <subject>`
-
-**Type 类型：**
-
-- `feat`: 新功能
-- `fix`: 修复 bug
-- `docs`: 文档变更
-- `style`: 代码格式调整
-- `refactor`: 重构代码
-- `test`: 测试相关
-- `chore`: 构建/工具链相关
+---
 
 ## 常见问题
 
-### 1. 启动报错或依赖问题
+| 问题 | 解决方案 |
+|---|---|
+| 启动报错或依赖问题 | `rm -rf node_modules pnpm-lock.yaml && pnpm install` |
+| 浏览器访问空白 | 升级浏览器至最新版本 |
+| IDE 爆红但能正常运行 | 重启 VSCode，等待 TypeScript 服务初始化 |
+| Mock 数据不生效 | 检查 `.env.development` 中 `VITE_MOCK_DEV_SERVER=true` |
+| 接口请求失败 | 检查 `VITE_APP_API_URL`，确保后端服务已启动 |
+| gRPC 类型报错 | 重新生成 protobuf 代码，确认 `generated/` 目录最新 |
 
-```bash
-# 清除缓存并重新安装
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
-
-### 2. 浏览器访问空白
-
-升级浏览器至最新版本，低版本浏览器内核可能不支持可选链操作符 `?.` 等新语法。
-
-### 3. IDE 爆红但能正常运行
-
-重启 VSCode，或等待 TypeScript 服务初始化完成。
-
-### 4. 同步更新后启动失败
-
-```bash
-# 清除缓存并重新安装
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
-
-### 5. Mock 数据不生效
-
-检查 `.env.development` 中 `VITE_MOCK_DEV_SERVER` 是否为 `true`，重启开发服务器。
-
-### 6. 接口请求失败
-
-检查 `.env.development` 中的 `VITE_APP_API_URL` 配置是否正确，确保后端服务已启动。
+---
 
 ## 贡献指南
 
-欢迎提交 Issue 和 Pull Request！
-
 1. Fork 本仓库
 2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+3. 提交更改 (`pnpm run commit`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
 ## 特别感谢
 
-- [Vue.js](https://vuejs.org/) - 优雅的渐进式 JavaScript 框架
-- [Vite](https://vitejs.dev/) - 下一代前端开发工具
-- [Element Plus](https://element-plus.org/) - 基于 Vue 3 的组件库
-- [Vue3-Element-Admin](https://gitee.com/panjiachen/vue-element-admin) - 灵感来源
+- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
+- [Vite](https://vitejs.dev/) - 下一代前端构建工具
+- [Element Plus](https://element-plus.org/) - Vue 3 组件库
+- [vue3-element-admin](https://gitee.com/panjiachen/vue-element-admin) - 灵感来源
 
 ---
 
-**如果这个项目对你有帮助，请给一个 ⭐️ Star 支持！**
+**如果这个项目对你有帮助，请给一个 Star 支持！**

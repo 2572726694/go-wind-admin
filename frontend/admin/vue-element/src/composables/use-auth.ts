@@ -19,7 +19,7 @@ import {
   getMyPermissionCode,
   getMe,
 } from "@/api/composables";
-import { i18n } from '@/core/i18n';
+import { i18n } from "@/core/i18n";
 import {
   startRefreshTimer,
   stopRefreshTimer,
@@ -31,6 +31,19 @@ import { createI18nGetErrorMsg } from "@/composables/use-request-error-msg";
 
 const t = i18n.global.t;
 const getErrorMsg = createI18nGetErrorMsg();
+
+// ==============================
+// 网络异常标记类
+// ==============================
+
+class NetworkError extends Error {
+  constructor() {
+    super("Network Error");
+    this.name = "NetworkError";
+  }
+}
+
+export { NetworkError };
 
 // ==============================
 // 登录加载状态（模块级单例）
@@ -81,7 +94,11 @@ async function fetchUserInfo() {
     return user as unknown as UserInfo;
   } catch (error) {
     console.error("fetchUserInfo failed:", error);
-    await _doLogout();
+    // 网络异常时重新抛出，让 getUserPermissionCodes 的 catch 统一处理
+    if (isNetworkError(error)) {
+      throw new NetworkError();
+    }
+    // 其他错误（如 401）返回 null，让上层决定
     return null;
   }
 }
@@ -91,7 +108,7 @@ async function fetchAccessCodes() {
 }
 
 async function login(
-  params: Recordable<any>,
+  params: Record<string, any>,
   onSuccess?: () => Promise<void> | void
 ): Promise<{ userInfo: null | UserInfo } | null> {
   let userInfo: null | UserInfo = null;
@@ -150,7 +167,11 @@ async function login(
       if (accessStore.loginExpired) {
         accessStore.setLoginExpired(false);
       } else {
-        onSuccess ? await onSuccess?.() : await router.push(userInfo.homePath || DEFAULT_HOME_PATH);
+        if (onSuccess) {
+          await onSuccess();
+        } else {
+          await router.push(userInfo.homePath || DEFAULT_HOME_PATH);
+        }
       }
 
       if (userInfo?.realname) {
@@ -214,24 +235,47 @@ async function getCaptcha() {
   return await authGenerateCaptcha();
 }
 
+/**
+ * 判断是否为网络异常（非业务错误）
+ * 网络异常的特征：AxiosError 且 code 为 ERR_NETWORK，或 message 包含 Network Error
+ */
+function isNetworkError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const err = error as Record<string, unknown>;
+  // AxiosError: code === 'ERR_NETWORK'
+  if (err.code === "ERR_NETWORK") return true;
+  // 兜底：message 检测
+  if (typeof err.message === "string" && err.message.includes("Network Error")) return true;
+  return false;
+}
+
 async function getUserPermissionCodes() {
   const accessStore = useAccessStore();
   const userStore = useAppUserStore();
 
   if (userStore.userInfo === null || accessStore.accessCodes === null) {
-    const [fetchUserInfoResult, fetchAccessCodeResult] = await Promise.all([
-      fetchUserInfo(),
-      fetchAccessCodes(),
-    ]);
-    if (fetchUserInfoResult === null || fetchAccessCodeResult === null) {
-      console.warn("setupAccessGuard failed fetch user info:", fetchUserInfoResult);
+    try {
+      const [fetchUserInfoResult, fetchAccessCodeResult] = await Promise.all([
+        fetchUserInfo(),
+        fetchAccessCodes(),
+      ]);
+      if (fetchUserInfoResult === null || fetchAccessCodeResult === null) {
+        console.warn("setupAccessGuard failed fetch user info:", fetchUserInfoResult);
+        return false;
+      }
+      userStore.setUserInfo(fetchUserInfoResult);
+
+      // 只存权限码，角色码由 userStore.userRoles 管理
+      const codes = fetchAccessCodeResult ? (fetchAccessCodeResult.codes ?? []) : [];
+      accessStore.setAccessCodes(codes);
+    } catch (error: unknown) {
+      // 网络异常：抛出特定标记，让路由守卫跳转错误页而非白屏
+      if (isNetworkError(error)) {
+        throw new NetworkError();
+      }
+      // 其他错误（如 401/403）：标记为认证失败
       return false;
     }
-    userStore.setUserInfo(fetchUserInfoResult);
-
-    // 只存权限码，角色码由 userStore.userRoles 管理
-    const codes = fetchAccessCodeResult ? (fetchAccessCodeResult.codes ?? []) : [];
-    accessStore.setAccessCodes(codes);
   }
 
   startRefreshTimer();

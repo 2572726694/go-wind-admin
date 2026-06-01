@@ -34,7 +34,7 @@ import {
   useDownloadFile,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const { mutateAsync: deleteFile } = useDeleteFile();
 const { mutateAsync: uploadFileAction } = useUploadFile();
@@ -45,7 +45,6 @@ const drawerRef = ref();
 const fileSelectRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -89,7 +88,7 @@ const pageConfig = computed<ProPageConfig>(() => ({
       { prop: "fileName", label: $t("pages.file.fileName"), minWidth: 150 },
       { prop: "saveFileName", label: $t("pages.file.saveFileName"), minWidth: 150 },
       { prop: "fileDirectory", label: $t("pages.file.fileDirectory"), minWidth: 150 },
-      { prop: "sizeFormat", label: $t("pages.file.size"), width: 100 },
+      { prop: "sizeFormat", label: $t("pages.file.size"), width: 100, align: "right" },
       {
         prop: "createdAt",
         label: $t("common.table.createdAt"),
@@ -110,8 +109,13 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 150,
         cellType: "tool",
         buttons: [
-          { name: "download", label: $t("common.button.download") },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "download", label: $t("common.button.download"), icon: "lucide:download" },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

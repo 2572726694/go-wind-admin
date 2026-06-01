@@ -15,12 +15,12 @@
     />
     <path
       d="M140.09162,291.85056c0-78.36865,54.255-141.78356,121.30372-141.78356"
-      fill="hsl(var(--primary))"
+      fill="hsl(var(--primary-hsl))"
       transform="translate(-31.39089 -100.5)"
     />
     <path
       d="M70.77521,158.66768c0,73.61476,31.00285,133.18288,69.31641,133.18288"
-      fill="hsl(var(--primary))"
+      fill="hsl(var(--primary-hsl))"
       transform="translate(-31.39089 -100.5)"
     />
     <path
@@ -84,13 +84,7 @@
       x="578.43291"
       y="212.68859"
     />
-    <rect
-      fill="#3f3d56"
-      height="267.83694"
-      width="478.71308"
-      x="595.70294"
-      y="231.77652"
-    />
+    <rect fill="#3f3d56" height="267.83694" width="478.71308" x="595.70294" y="231.77652" />
     <circle cx="835.05948" cy="223.29299" fill="#f2f2f2" r="3.02983" />
     <path
       d="M1123.07694,621.32226V652.6628a18.04341,18.04341,0,0,1-18.04568,18.04568H627.86949A18.04341,18.04341,0,0,1,609.8238,652.6628V621.32226Z"
@@ -111,13 +105,7 @@
       opacity="0.1"
       transform="translate(-31.39089 -100.5)"
     />
-    <ellipse
-      cx="1066.53846"
-      cy="654.13477"
-      fill="#f2f2f2"
-      rx="7.87756"
-      ry="2.42386"
-    />
+    <ellipse cx="1066.53846" cy="654.13477" fill="#f2f2f2" rx="7.87756" ry="2.42386" />
     <circle cx="835.05948" cy="545.66686" fill="#f2f2f2" r="11.51335" />
     <polygon
       opacity="0.1"
@@ -128,7 +116,7 @@
     <rect fill="#3f3d56" height="86" width="250" x="87.60911" y="237" />
     <rect fill="#3f3d56" height="86" width="250" x="87.60911" y="339" />
     <rect
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       height="16"
       opacity="0.4"
       width="16"
@@ -136,16 +124,16 @@
       y="150"
     />
     <rect
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       height="16"
       opacity="0.8"
       width="16"
       x="294.60911"
       y="150"
     />
-    <rect fill="#6c63ff" height="16" width="16" x="317.60911" y="150" />
+    <rect fill="hsl(var(--primary-hsl))" height="16" width="16" x="317.60911" y="150" />
     <rect
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       height="16"
       opacity="0.4"
       width="16"
@@ -153,16 +141,16 @@
       y="251"
     />
     <rect
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       height="16"
       opacity="0.8"
       width="16"
       x="294.60911"
       y="251"
     />
-    <rect fill="#6c63ff" height="16" width="16" x="317.60911" y="251" />
+    <rect fill="hsl(var(--primary-hsl))" height="16" width="16" x="317.60911" y="251" />
     <rect
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       height="16"
       opacity="0.4"
       width="16"
@@ -170,14 +158,14 @@
       y="352"
     />
     <rect
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       height="16"
       opacity="0.8"
       width="16"
       x="294.60911"
       y="352"
     />
-    <rect fill="#6c63ff" height="16" width="16" x="317.60911" y="352" />
+    <rect fill="hsl(var(--primary-hsl))" height="16" width="16" x="317.60911" y="352" />
     <circle cx="316.60911" cy="538" fill="#2f2e41" r="79" />
     <rect fill="#2f2e41" height="43" width="24" x="280.60911" y="600" />
     <rect fill="#2f2e41" height="43" width="24" x="328.60911" y="600" />
@@ -187,7 +175,7 @@
     <circle cx="318.60911" cy="518" fill="#3f3d56" r="9" />
     <path
       d="M271.36733,565.03228c-6.37889-28.56758,14.01185-57.43392,45.544-64.47477s62.2651,10.41,68.644,38.9776-14.51861,39.10379-46.05075,46.14464S277.74622,593.59986,271.36733,565.03228Z"
-      fill="#6c63ff"
+      fill="hsl(var(--primary-hsl))"
       transform="translate(-31.39089 -100.5)"
     />
     <ellipse

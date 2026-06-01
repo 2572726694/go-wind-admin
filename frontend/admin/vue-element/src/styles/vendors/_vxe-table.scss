@@ -92,6 +92,27 @@
   /* select */
   --vxe-select-option-hover-background-color: var(--el-bg-color-overlay);
   --vxe-select-panel-background-color: var(--el-bg-color);
+
+  /* ========== 行高：极简紧凑模式 ==========
+   * 表头高度：~30px（1 + 28px文字line-height + 1）
+   * 表项高度：~30px（1 + 28px文字line-height + 1）
+   */
+  --vxe-ui-table-cell-padding-top: 1px;
+  --vxe-ui-table-cell-padding-bottom: 1px;
+  --vxe-ui-table-header-cell-padding-top: 1px;
+  --vxe-ui-table-header-cell-padding-bottom: 1px;
+}
+
+// ============================================
+// 浅色模式配色
+[data-vxe-ui-theme="light"] {
+  --vxe-ui-table-header-background-color: #EBEDF0;
+  --vxe-ui-table-header-font-color: #1d2129;
+  --vxe-ui-table-body-background-color: #ffffff;
+  --vxe-ui-table-row-striped-background-color: #f8f9fb;
+  --vxe-ui-table-row-hover-background-color: #f0f2f5;
+  --vxe-ui-table-row-hover-striped-background-color: #f0f2f5;
+  --vxe-ui-table-border-color: #e4e7ed;
 }
 
 // ============================================
@@ -137,126 +158,202 @@
 }
 
 // ============================================
-// 去掉列分割线
+// 分割线策略（border--none 模式）
+// vxe-table 不画任何内部线
+// 表头小竖线和表体行间横线由 ProTable scoped :deep() 样式绘制
+// 全局只处理：去除 border-right、暗色模式配色、行高、斑马纹
 // ============================================
 
+// 所有列去掉 border-right
 .vxe-table {
-  // 去掉列之间的边框
-  .vxe-body--column,
   .vxe-header--column,
+  .vxe-body--column,
   .vxe-footer--column {
     border-right: none !important;
-  }
-
-  // 保留表格整体边框
-  &.vxe-table--border-line {
-    border: 1px solid var(--el-border-color);
   }
 }
 
 // ============================================
-// 暗色主题样式
+// 暗色模式配色
+[data-vxe-ui-theme="dark"] {
+  // 表头：深灰背景
+  --vxe-ui-table-header-background-color: #1f2329;
+  --vxe-ui-table-header-font-color: #e5eaf3;
+  // 表项：深色背景（普通行）
+  --vxe-ui-table-body-background-color: #14161a;
+  // body wrapper 背景必须与表项背景一致
+  --vxe-ui-layout-background-color: #14161a;
+  // 斑马纹行：稍亮的灰色，形成对比
+  --vxe-ui-table-row-striped-background-color: #1e2127;
+  --vxe-ui-table-row-hover-background-color: #252830;
+  --vxe-ui-table-row-current-background-color: var(--el-color-primary-light-9);
+  --vxe-ui-table-row-hover-current-background-color: var(--el-color-primary-light-8);
+  --vxe-ui-table-row-hover-striped-background-color: #252830;
+  --vxe-ui-table-border-color: #2a2f36;
+  --vxe-ui-table-header-border-color: #2a2f36;
+  --vxe-ui-font-color: #cbd5e1;
+  --vxe-ui-pager-background-color: #14161a;
+
+  // 行高：极简紧凑（显式赋值，禁止自引用）
+  --vxe-ui-table-cell-padding-top: 1px;
+  --vxe-ui-table-cell-padding-bottom: 1px;
+  --vxe-ui-table-header-cell-padding-top: 1px;
+  --vxe-ui-table-header-cell-padding-bottom: 1px;
+
+  // vxe-table v3 兼容变量
+  --vxe-table-border-color: #2a2f36;
+  --vxe-table-header-background-color: #1f2329;
+  --vxe-table-body-background-color: #14161a;
+  --vxe-table-row-hover-background-color: #252830;
+  --vxe-table-row-current-background-color: var(--el-color-primary-light-9);
+  --vxe-table-row-hover-current-background-color: var(--el-color-primary-light-8);
+  --vxe-table-header-font-color: #e5eaf3;
+  --vxe-table-body-font-color: #cbd5e1;
+}
+
+// ============================================
+// 表头底部横线（与表体分割）
+// 使用 box-shadow 代替 border-bottom，因为 vxe-table 用 background-image 画线，
+// border-bottom 可能被 header-wrapper 的背景层叠覆盖。
+// box-shadow: inset 渲染在背景之上，视觉上更可靠。
 // ============================================
 
-html.dark {
-  // vxe-table 暗色主题变量(使用统一的暗色变量)
-  --vxe-table-border-color: var(--dark-border, #23272F) !important;
-  --vxe-ui-table-border-color: var(--dark-border, #23272F) !important;
-  --vxe-table-header-background-color: var(--dark-header, #14171C) !important;
-  --vxe-table-body-background-color: var(--dark-bg-table, #14171C) !important;
-  --vxe-table-row-hover-background-color: var(--dark-bg-hover, #1A1E26) !important;
-  --vxe-table-row-current-background-color: var(--dark-bg-hover, #1A1E26) !important;
-  --vxe-table-row-hover-current-background-color: var(--dark-bg-hover, #1A1E26) !important;
-  --vxe-table-header-font-color: var(--dark-text-primary, #E5EAF3) !important;
-  --vxe-table-body-font-color: var(--dark-text-data, #C9CDD4) !important;
-  --vxe-table-checkbox-range-background-color: var(--dark-bg-hover, #1A1E26) !important;
+// 亮色模式
+.vxe-table--render-default .vxe-table--header-wrapper {
+  box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.06);
+}
 
-  // 强制覆盖 vxe-table 的所有边框
-  .vxe-table--basic,
-  .vxe-table--render-default {
-    // 所有包含边框的元素
-    *,
-    &::before,
-    &::after,
-    .vxe-body--column,
-    .vxe-header--column,
-    .vxe-footer--column,
-    .vxe-body--row td,
-    .vxe-header--row th,
-    .vxe-footer--row td,
-    .vxe-cell,
-    .vxe-table--border-line,
-    .vxe-table--header-border-line,
-    .vxe-table--body-border-line,
-    .vxe-table--footer-border-line,
-    .vxe-table--border-line--inner,
-    .vxe-table--border-line--outer,
-    .vxe-border,
-    .vxe-table--inner-border,
-    .vxe-table--inner-border--wrapper {
-      border-color: var(--dark-border, #23272F) !important;
+// 暗色模式
+[data-vxe-ui-theme="dark"] .vxe-table--render-default .vxe-table--header-wrapper {
+  box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+// ============================================
+// 表头下边框由 ProTable scoped :deep() 中通过 border-bottom 绘制
+// ============================================
+
+// ============================================
+// 行高强制统一（明暗双模式）
+// 使用 vxe-table v4 属性选择器 + !important 兜底，确保不被内部样式覆盖
+// ============================================
+
+// 表项行高：~30px（1 + 28 + 1）
+.vxe-table .vxe-body--column {
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+}
+
+// 表头行高：~30px（1 + 28 + 1）
+.vxe-table .vxe-header--column {
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+}
+
+// 表头字体加粗
+.vxe-table--render-default {
+  .vxe-table--header-wrapper .vxe-header--column {
+    font-weight: 600 !important;
+  }
+}
+
+// ============================================
+// 斑马纹强制覆盖
+// 使用选择器 + !important 确保不被 vxe-table 内置样式覆盖
+// ============================================
+
+.vxe-table--render-default .vxe-body--row.row--stripe > .vxe-body--column {
+  background-color: var(--vxe-ui-table-row-striped-background-color) !important;
+}
+
+// ============================================
+// 选中行样式（柔和蓝色背景）
+// ============================================
+
+// 浅色模式
+[data-vxe-ui-theme="light"] .vxe-table--render-default {
+  .vxe-body--row.row--current > .vxe-body--column {
+    background-color: var(--el-color-primary-light-9) !important;
+  }
+
+  .vxe-body--row.row--current.row--hover > .vxe-body--column {
+    background-color: var(--el-color-primary-light-8) !important;
+  }
+}
+
+// 暗黑模式
+[data-vxe-ui-theme="dark"] .vxe-table--render-default {
+  .vxe-body--row.row--current > .vxe-body--column {
+    background-color: var(--el-color-primary-light-9) !important;
+  }
+
+  .vxe-body--row.row--current.row--hover > .vxe-body--column {
+    background-color: var(--el-color-primary-light-8) !important;
+  }
+}
+
+// ============================================
+// 树形表格优化
+// ============================================
+
+.vxe-table {
+  // 树形展开图标：增大点击热区
+  .vxe-cell--tree-node {
+    // 扩大点击区域：左右各加 4px
+    padding: 0 4px;
+
+    // 展开/收起图标本身
+    .vxe-tree--expand-btn {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: var(--el-fill-color-light);
+      }
+
+      // 图标尺寸
+      .vxe-icon--caret-right,
+      .vxe-icon--caret-bottom {
+        font-size: 14px;
+      }
+    }
+
+    // 子节点缩进量
+    .vxe-tree--indent {
+      width: 24px;
     }
   }
+}
 
-  // 额外覆盖列和行的边框
-  .vxe-body--column.col--ellipsis,
-  .vxe-header--column.col--ellipsis,
-  .vxe-body--row.row--middle > td,
-  .vxe-header--row.row--middle > th {
-    border-color: var(--dark-border, #23272F) !important;
+// ============================================
+// 空状态样式：居中图标 + 文本
+// ============================================
+
+.vxe-table {
+  .vxe-table--empty-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
   }
 
-  // 强制覆盖行的背景色(支持奇偶行区分)
-  .vxe-table--body-wrapper {
-    .vxe-body--row {
-      transition: background-color 0.2s ease !important;
+  .vxe-table--empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--el-text-color-placeholder);
 
-      // 奇数行
-      &:nth-child(odd) {
-        background-color: var(--dark-row-odd, #0F1218) !important;
-
-        > td {
-          background-color: transparent !important;
-          color: var(--dark-text-data, #C9CDD4) !important;
-        }
-      }
-
-      // 偶数行
-      &:nth-child(even) {
-        background-color: var(--dark-row-even, #161A23) !important;
-
-        > td {
-          background-color: transparent !important;
-          color: var(--dark-text-primary, #E5EAF3) !important;
-        }
-      }
-
-      // hover 态
-      &:hover,
-      &.row--hover {
-        background-color: var(--dark-bg-hover, #1A1E26) !important;
-
-        > td {
-          background-color: transparent !important;
-          color: var(--dark-text-primary, #E5EAF3) !important;
-        }
-      }
-
-      // 选中行
-      &.row--current {
-        background-color: var(--dark-bg-hover, #1A1E26) !important;
-        outline: 1px solid var(--dark-primary, #409EFF) !important;
-
-        > td {
-          background-color: transparent !important;
-          color: var(--dark-text-primary, #E5EAF3) !important;
-        }
-      }
-
-      // hover + 选中
-      &.row--hover.row--current {
-        background-color: var(--dark-bg-hover, #1A1E26) !important;
-      }
+    .vxe-icon--empty {
+      font-size: 48px;
+      color: var(--el-text-color-placeholder);
+      margin-bottom: 8px;
     }
   }
 }

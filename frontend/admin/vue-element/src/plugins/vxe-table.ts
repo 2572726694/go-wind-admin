@@ -15,8 +15,8 @@ export function configureVxeTable() {
       showOverflow: "title",
       showHeaderOverflow: "title",
       autoResize: true,
-      border: "inner",
-      emptyText: "暂无数据",
+      border: "outer",
+      emptyText: "暂无数据", // vxe-table 内部使用，不需要 i18n
       rowConfig: {
         isHover: true,
         isCurrent: true,
@@ -27,8 +27,7 @@ export function configureVxeTable() {
       },
       align: "center",
       headerAlign: "center",
-      // 暗色主题边框配置
-      stripe: false,
+      stripe: true,
     },
     pager: {
       perfect: false,

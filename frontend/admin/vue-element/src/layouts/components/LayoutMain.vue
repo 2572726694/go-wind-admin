@@ -1,10 +1,13 @@
 <template>
   <section class="app-main" :class="mainClass" :style="{ height: appMainHeight }">
-    <router-view v-if="!isRefreshing">
+    <router-view>
       <template #default="{ Component, route }">
         <transition :name="transitionName" mode="out-in">
           <keep-alive :include="cachedViews">
-            <component :is="currentComponent(Component, route)" :key="route.fullPath" />
+            <component
+              :is="currentComponent(Component, route)"
+              :key="contentRefreshKey ? `${route.fullPath}__${contentRefreshKey}` : route.fullPath"
+            />
           </keep-alive>
         </transition>
       </template>
@@ -12,14 +15,15 @@
 
     <!-- 返回顶部按钮 -->
     <el-backtop target=".app-main">
-      <div class="i-svg:backtop w-6 h-6" />
+      <SvgIcon icon="backtop" class="w-6 h-6" />
     </el-backtop>
   </section>
 </template>
 
 <script setup lang="ts">
 import { type RouteLocationNormalized } from "vue-router";
-import { useTagsViewStore } from "@/stores";
+import { useTagsViewStore } from "./useTagsViewStore";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 import { preferences, usePreferences } from "@/core/preferences";
 import variables from "@/styles/variables.module.scss";
 import Error404 from "@/pages/core/error/404.vue";
@@ -28,13 +32,16 @@ const { cachedViews } = toRefs(useTagsViewStore());
 const { tabbarPreferences } = usePreferences();
 
 // 注入刷新状态
-const isRefreshing = inject<Ref<boolean>>("contentRefreshing", ref(false));
+const contentRefreshing = inject<Ref<boolean>>("contentRefreshing", ref(false));
+
+// 刷新 key：每次刷新递增，强制组件重建
+const contentRefreshKey = inject<Ref<number>>("contentRefreshKey", ref(0));
 
 // 当前组件
 const wrapperMap = new Map<string, Component>();
 
 // 刷新时清理 wrapperMap，确保组件完全重建
-watch(isRefreshing, (val) => {
+watch(contentRefreshing, (val) => {
   if (val) {
     wrapperMap.clear();
   }
@@ -98,7 +105,6 @@ const mainClass = computed(() => {
 .app-main {
   position: relative;
   overflow-y: auto;
-  scrollbar-gutter: stable;
   background-color: var(--el-bg-color-page);
   width: 100%;
   min-width: 0;

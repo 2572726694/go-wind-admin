@@ -13,8 +13,6 @@
         <ElSwitch
           v-model="scope.row.enable"
           :loading="scope.row.pending"
-          :active-text="$t('common.switch.active')"
-          :inactive-text="$t('common.switch.inactive')"
           @change="(value: string | number | boolean) => handleEnableChanged(scope.row, !!value)"
         />
       </template>
@@ -54,7 +52,7 @@ import {
   useRestartAllTasks,
 } from "@/api/composables";
 import { PaginationQuery } from "@/core/transport/rest";
-import { $t } from '@/core/i18n';
+import { $t } from "@/core/i18n";
 
 const { mutateAsync: deleteTask } = useDeleteTask();
 const { mutateAsync: updateTask } = useUpdateTask();
@@ -67,7 +65,6 @@ const pageRef = ref();
 const drawerRef = ref();
 
 const pageConfig = computed<ProPageConfig>(() => ({
-
   search: {
     grid: true,
     fields: [
@@ -170,11 +167,31 @@ const pageConfig = computed<ProPageConfig>(() => ({
         width: 240,
         cellType: "tool",
         buttons: [
-          { name: "edit", label: $t("common.button.edit") },
-          { name: "start", label: $t("pages.task.button.start"), attrs: { type: "success" } },
-          { name: "stop", label: $t("pages.task.button.stop"), attrs: { type: "danger" } },
-          { name: "restart", label: $t("pages.task.button.restart"), attrs: { type: "primary" } },
-          { name: "delete", label: $t("common.button.delete"), attrs: { type: "danger" } },
+          { name: "edit", label: $t("common.button.edit"), icon: "lucide:pen-line" },
+          {
+            name: "start",
+            label: $t("pages.task.button.start"),
+            icon: "lucide:play",
+            attrs: { type: "success" },
+          },
+          {
+            name: "stop",
+            label: $t("pages.task.button.stop"),
+            icon: "lucide:square",
+            attrs: { type: "danger" },
+          },
+          {
+            name: "restart",
+            label: $t("pages.task.button.restart"),
+            icon: "lucide:rotate-ccw",
+            attrs: { type: "primary" },
+          },
+          {
+            name: "delete",
+            label: $t("common.button.delete"),
+            icon: "lucide:trash-2",
+            attrs: { type: "danger" },
+          },
         ],
       },
     ],

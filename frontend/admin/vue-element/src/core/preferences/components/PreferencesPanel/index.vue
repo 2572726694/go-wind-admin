@@ -2,7 +2,7 @@
   <ElDrawer
     :model-value="open"
     direction="rtl"
-    size="480px"
+    :size="DRAWER_WIDTH"
     :show-close="false"
     class="preferences-drawer"
     @close="onClose"
@@ -64,9 +64,10 @@
 import { ref, type Component } from "vue";
 import { ElDrawer, ElButton } from "element-plus";
 import { RefreshRight, Close, CopyDocument, SwitchButton } from "@element-plus/icons-vue";
-import { useI18n } from '@/core/i18n';
+import { useI18n } from "@/core/i18n";
 import { resetPreferences } from "../../index";
 import { useAuth } from "@/composables/use-auth";
+import { DRAWER_WIDTH } from "@/constants";
 
 import AppearancePanel from "./AppearancePanel.vue";
 import LayoutPanel from "./LayoutPanel.vue";

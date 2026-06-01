@@ -57,7 +57,7 @@ export class ProModalApi {
         if (newVal !== oldVal) {
           this.onOpenChangeCallback?.(newVal);
         }
-      },
+      }
     );
 
     bindMethods(this);
@@ -107,9 +107,7 @@ export class ProModalApi {
   /** 响应式更新状态 */
   setState(stateOrFn: ((prev: ProModalState) => Partial<ProModalState>) | Partial<ProModalState>) {
     const prev = toRaw(this.store) as ProModalState;
-    const update = isFunction(stateOrFn)
-      ? stateOrFn(prev)
-      : stateOrFn;
+    const update = typeof stateOrFn === "function" ? stateOrFn(prev) : stateOrFn;
     const merged = mergeWithArrayOverride(update, prev) as ProModalState;
     Object.assign(this.store, merged);
   }

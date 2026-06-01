@@ -1,7 +1,8 @@
 import { BUILT_IN_THEME_PRESETS } from "./config/constants";
 import type { Preferences } from "./types";
 import { generateColorVariables, generatorColorVariables } from "@/utils/theme";
-import { hexToHsl, hexToHslString, toHex } from "@/utils/color";
+import { hexToHslString, toHex } from "@/utils/color";
+import { VxeUI } from "vxe-table";
 
 /**
  * 更新 CSS 变量的函数
@@ -57,6 +58,8 @@ function updateCSSVariables(preferences: Preferences) {
   if (Reflect.has(theme, "mode")) {
     const dark = isDarkTheme(mode);
     root.classList.toggle("dark", dark);
+    // vxe-table 4.7+ 暗色主题同步
+    VxeUI.setTheme(dark ? "dark" : "light");
   }
 
   // html 设置 semi-dark-sidebar / semi-dark-header
@@ -160,7 +163,7 @@ function updateMainColorVariables(preference: Preferences) {
   // 主色
   // ------------------------------
   const hslPrimary = hexToHslString(hexPrimary);
-  root.style.setProperty("--primary", hexToHsl(hexPrimary));
+  root.style.setProperty("--primary", hexPrimary);
   root.style.setProperty("--primary-hsl", hslPrimary);
 
   // ------------------------------
@@ -185,12 +188,13 @@ function updateMainColorVariables(preference: Preferences) {
   root.style.setProperty("--destructive-hsl", hslDestructive);
 
   // ------------------------------
-  // 前景色 foreground
+  // 前景色 foreground（复用 Element Plus 文本色，跟随 dark/light 自动切换）
   // ------------------------------
-  const isDark = isDarkTheme(preference.theme.mode);
-  const foreground = isDark ? "#e5e7eb" : "#1f2937";
-  const hslForeground = hexToHslString(foreground);
-  root.style.setProperty("--foreground", hexToHsl(foreground));
+  const foreground =
+    getComputedStyle(root).getPropertyValue("--el-text-color-primary").trim() ||
+    (isDarkTheme(preference.theme.mode) ? "#CFD3DC" : "#303133");
+  const hslForeground = hexToHslString(toHex(foreground));
+  root.style.setProperty("--foreground", foreground);
   root.style.setProperty("--foreground-hsl", hslForeground);
 
   // 5. 自定义变量通过 style 标签设置
